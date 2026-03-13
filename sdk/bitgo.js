@@ -55,6 +55,33 @@ async function getWalletInfo() {
 // ── Spending Policies ───────────────────────────────────────
 
 /**
+ * Sync ENS permissions json standard to BitGo wallet policy.
+ * @param {object} ensPermissions - The parsed agent.permissions JSON
+ */
+async function syncENSPolicy(ensPermissions) {
+  const wallet = await getWallet()
+  
+  if (ensPermissions.max_spend) {
+    const amountSatoshi = Number(ensPermissions.max_spend) * 1e18; // converting ETH to wei roughly
+    await wallet.updatePolicyRule({
+      id: 'darkagent-ens-daily-limit',
+      type: 'velocityLimit',
+      action: { type: 'deny' },
+      condition: {
+        amountString: String(amountSatoshi),
+        timeWindow: ensPermissions.time_window || 86400,
+        groupTags: [],
+        excludeTags: [],
+      },
+    })
+    console.log(`✅ BitGo policy synced with ENS limit: ${ensPermissions.max_spend} ETH`)
+  }
+  
+  // Could also sync allowed_protocols by whitelisting those addresses if mapped
+  return { success: true, synced: true }
+}
+
+/**
  * Set a velocity limit (daily spending cap) on the wallet.
  * @param {number} limitAmountSatoshi - Max daily spend in satoshi/wei
  */

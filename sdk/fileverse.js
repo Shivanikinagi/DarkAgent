@@ -19,6 +19,7 @@ const NAMESPACE = process.env.FILEVERSE_NAMESPACE || 'darkagent'
 // ── Audit Document Types ────────────────────────────────────
 
 const DOC_TYPES = {
+  VERIFICATION_RECEIPT: 'verification-receipt',
   CIRCUIT_BREAKER: 'circuit-breaker-event',
   COMPLIANCE_PROOF: 'compliance-proof',
   TRANSACTION: 'transaction-receipt',
@@ -87,6 +88,22 @@ async function storeAuditDocument(docType, data, metadata = {}) {
 }
 
 // ── Specialized Document Stores ─────────────────────────────
+
+/**
+ * Store a complete Verification Receipt on Fileverse.
+ * Proves that an execution passed the ENS rules via DarkAgent.
+ */
+async function storeVerificationReceipt({ proposalId, agentAddress, user, action, rulesChecked, signature }) {
+  return storeAuditDocument(DOC_TYPES.VERIFICATION_RECEIPT, {
+    proposal_id: proposalId,
+    agent: agentAddress,
+    user: user,
+    action: action,
+    rules_checked: rulesChecked,
+    verified_by: "DarkAgent",
+    signature: signature
+  })
+}
 
 /**
  * Store a circuit breaker firing event.

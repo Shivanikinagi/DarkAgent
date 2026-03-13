@@ -2,20 +2,7 @@
  * ens-set-text-records.js
  *
  * Sets ENS text records on dark26.eth subnames to advertise
- * agent capabilities, spending limits, and status on-chain.
- *
- * Text records set per agent:
- *   - capability      → comma-separated capabilities
- *   - max_spend       → daily spending limit in ETH
- *   - allowed_tokens  → ETH,USDC,WETH
- *   - status          → active | frozen
- *   - owner           → owner wallet address
- *   - project         → darkagent
- *   - url             → dashboard URL
- *   - description     → human-readable description
- *   - mev_protection  → true | false (route through Flashbots)
- *   - slippage        → max slippage in BPS (e.g., "50" = 0.5%)
- *   - delegation      → comma-separated delegate addresses for Permit2
+ * the new standard: `agent.permissions` JSON.
  *
  * Runs on Ethereum Sepolia testnet (ENS lives on L1).
  *
@@ -47,34 +34,30 @@ const AGENTS = [
     name: 'trading-agent.dark26.eth',
     address: '0x4B02abfffd2f4a0De9bdf0Ea3Eb73271014EFb60',
     records: {
-      capability: 'yield-farming,token-swap,payment',
-      max_spend: '0.1',
-      allowed_tokens: 'ETH,USDC,WETH',
-      status: 'active',
-      owner: process.env.OWNER_ADDRESS || '0x4B02abfffd2f4a0De9bdf0Ea3Eb73271014EFb60',
+      'agent.permissions': JSON.stringify({
+        max_spend: "0.1",
+        slippage: 0.5,
+        allowed_protocols: ["uniswap"],
+        allowed_tokens: ["ETH", "USDC", "WETH"],
+        time_window: 86400
+      }),
+      description: 'DarkAgent trading agent — yield farming, swaps',
       project: 'darkagent',
-      url: 'https://darkagent.xyz/dashboard',
-      description: 'DarkAgent trading agent — yield farming, swaps, and payments with on-chain spending controls',
-      mev_protection: 'true',
-      slippage: '50',
-      delegation: process.env.OWNER_ADDRESS || '0x6B845996450ecf86cC2CBc4b92C69d37F87f42d4',
     },
   },
   {
     name: 'data-agent.dark26.eth',
     address: '0xA28FA8e3391f4454F8E555F5A1Ef5ECC7486dF4F',
     records: {
-      capability: 'data-analysis,reporting,payment',
-      max_spend: '0.05',
-      allowed_tokens: 'ETH,USDC',
-      status: 'active',
-      owner: process.env.OWNER_ADDRESS || '0x4B02abfffd2f4a0De9bdf0Ea3Eb73271014EFb60',
+      'agent.permissions': JSON.stringify({
+        max_spend: "0.05",
+        slippage: 1.0,
+        allowed_protocols: [],
+        allowed_tokens: ["ETH", "USDC"],
+        time_window: 86400
+      }),
+      description: 'DarkAgent data agent',
       project: 'darkagent',
-      url: 'https://darkagent.xyz/dashboard',
-      description: 'DarkAgent data agent — on-chain analytics, compliance reporting, and payment processing',
-      mev_protection: 'false',
-      slippage: '100',
-      delegation: process.env.OWNER_ADDRESS || '0x6B845996450ecf86cC2CBc4b92C69d37F87f42d4',
     },
   },
 ]
