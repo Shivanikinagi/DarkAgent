@@ -1,32 +1,15 @@
 {
-  "network": "localhost",
-  "chainId": 31337,
-  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "network": "base_sepolia",
+  "chainId": 84532,
+  "deployer": "0x6B845996450ecf86cC2CBc4b92C69d37F87f42d4",
   "contracts": {
-    "DarkAgent": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-    "CapabilityCheck": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-    "Verifier": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+    "DarkAgent": "0xB50947Caa9F8a179EBA3A6545b267699aFF361BE"
   },
   "agents": {
-    "tradingAgent": {
-      "address": "0x95724ad37ebDEb092428017b8f4931Ee7b7E8FAc",
-      "ensName": "trading-agent.darkagent.eth",
-      "capabilities": [
-        "yield-farming",
-        "token-swap",
-        "payment"
-      ]
-    },
-    "dataAgent": {
-      "address": "0x6274192713dE3973d82D1CAA8D3ab381289197B5",
-      "ensName": "data-agent.darkagent.eth",
-      "capabilities": [
-        "data-analysis",
-        "reporting",
-        "payment"
-      ]
+    "demoAgent": {
+      "address": "0x6B845996450ecf86cC2CBc4b92C69d37F87f42d4",
+      "ensName": "voting-agent.eth"
     }
   },
-  "attestationHash": "0xb8b56d2393fd11cfdb68fb01e1e3f603a0ba94e849ba5869134a49c57b755718",
-  "deployedAt": "2026-03-11T19:27:11.855Z"
+  "deployedAt": "2026-03-13T07:32:51.890Z"
 }
