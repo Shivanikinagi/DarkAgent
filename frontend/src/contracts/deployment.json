@@ -3,7 +3,14 @@
   "chainId": 84532,
   "deployer": "0x6B845996450ecf86cC2CBc4b92C69d37F87f42d4",
   "contracts": {
-    "DarkAgent": "0xB50947Caa9F8a179EBA3A6545b267699aFF361BE"
+    "DarkAgent": "0xB50947Caa9F8a179EBA3A6545b267699aFF361BE",
+    "CoinbaseSmartWalletAgent": "0x0000000000000000000000000000000000000000",
+    "CoinbaseSmartWalletFactory": "0x0BA5ED0c6AA8c49038F819E587E2633c4A9F428a"
+  },
+  "smartWallet": {
+    "factory": "0x0BA5ED0c6AA8c49038F819E587E2633c4A9F428a",
+    "agent": "0x0000000000000000000000000000000000000000",
+    "note": "Deploy CoinbaseSmartWalletAgent using: npx hardhat run scripts/deploy-smart-wallet.js --network base_sepolia"
   },
   "agents": {
     "demoAgent": {
