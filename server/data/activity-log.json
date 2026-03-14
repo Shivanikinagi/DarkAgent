@@ -1,0 +1,68 @@
+[
+  {
+    "id": "2c14a1bf-772d-4f95-8ed5-737156011ec9",
+    "createdAt": "2026-03-14T18:11:01.771Z",
+    "type": "execution",
+    "ensName": "alice.eth",
+    "actionId": "uniswap-swap",
+    "protocol": "uniswap",
+    "amountUsd": 600,
+    "status": "executed",
+    "txid": "mocktx_1773511861768_63f8753f",
+    "stealthAddress": "0x6C01FEE7eab399B7860F95A35e96e40f9aF69d30",
+    "executorMode": "mock"
+  },
+  {
+    "id": "ec0185a5-a611-4f21-985f-fef3a2f80700",
+    "createdAt": "2026-03-14T18:11:01.736Z",
+    "type": "verification",
+    "ensName": "alice.eth",
+    "actionId": "uniswap-swap",
+    "protocol": "uniswap",
+    "amountUsd": 600,
+    "status": "approved"
+  },
+  {
+    "id": "33738125-92a2-4a05-9ece-084896ee9227",
+    "createdAt": "2026-03-14T18:11:01.735Z",
+    "type": "proposal",
+    "ensName": "alice.eth",
+    "actionId": "uniswap-swap",
+    "protocol": "uniswap",
+    "amountUsd": 600,
+    "status": "received",
+    "account": "7Yf3...BlinkDemo"
+  },
+  {
+    "id": "69781a1f-5eee-4310-83d6-55062bcdb4cf",
+    "createdAt": "2026-03-14T18:10:58.348Z",
+    "type": "policy",
+    "ensName": "alice.eth",
+    "status": "updated",
+    "details": {
+      "maxSpendUsd": 1000
+    }
+  },
+  {
+    "id": "6236796f-396a-4aa1-bc61-b63da3b9ce05",
+    "createdAt": "2026-03-14T18:10:52.672Z",
+    "type": "verification",
+    "ensName": "alice.eth",
+    "actionId": "uniswap-swap",
+    "protocol": "uniswap",
+    "amountUsd": 600,
+    "status": "blocked",
+    "reason": "Trade size 600 USD exceeds maxSpendUsd 500 USD."
+  },
+  {
+    "id": "bd7e39d9-971d-4f77-bd5d-bcf0ee99186c",
+    "createdAt": "2026-03-14T18:10:52.670Z",
+    "type": "proposal",
+    "ensName": "alice.eth",
+    "actionId": "uniswap-swap",
+    "protocol": "uniswap",
+    "amountUsd": 600,
+    "status": "received",
+    "account": "7Yf3...BlinkDemo"
+  }
+]

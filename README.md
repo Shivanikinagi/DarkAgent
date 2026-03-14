@@ -238,3 +238,50 @@ The frontend runs on Vite and connects to Base Sepolia. It supports two wallet c
 2. **MetaMask** — Traditional EOA wallet
 
 Navigate to `http://localhost:5173` after running `npm run dev`.
+
+
+## Blink Proxy Demo
+
+DarkAgent now includes a working Blink proxy server that turns the protocol into policy-gated middleware for AI-generated Blinks.
+
+```text
+AI Agent generates Blink
+        -> DarkAgent Blink Proxy GET/POST endpoints
+        -> ENS policy watcher resolves alice.eth rulebook
+        -> Policy engine allows or blocks
+        -> BitGo adapter executes through a fresh stealth address
+```
+
+### What is live now
+
+- `server/index.js` exposes a Blink-style action server with manifest, registry, GET metadata, and POST execution.
+- `server/lib/policyWatcher.js` polls the ENS policy store and only applies changes when the watcher syncs.
+- `server/lib/bitgoExecutionAdapter.js` makes stealth-address generation mandatory on every approved execution and can fall back to mock mode for local demos.
+- `frontend/src/pages/BlinkProxy.jsx` gives you a presentation-ready control room for the full story: blocked Blink, ENS update, watcher sync, successful rerun.
+
+### Demo commands
+
+```bash
+# Terminal 1 - Blink proxy backend
+npm run blink:server
+
+# Terminal 2 - frontend
+cd frontend
+npm run dev
+
+# Optional: one-command local stack
+cd ..
+npm run demo:blink
+
+# Focused backend verification
+npm run blink:test
+```
+
+### The 2-minute demo flow
+
+1. Open the `Blink Proxy` page.
+2. Click `Reset Demo` to restore `alice.eth` to a 500 USD spend cap.
+3. Click `Load 600 USD Blocked Demo`, then `Execute Blink` -> DarkAgent hard-blocks it.
+4. Click `Raise alice.eth to 1000 USD`.
+5. Click `Force Watcher Sync` to simulate the ENS watcher applying the updated policy.
+6. Click `Execute Blink` again -> the same Blink now clears policy, BitGo returns a receipt, and the stealth address is shown in the UI.

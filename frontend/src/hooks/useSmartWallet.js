@@ -190,6 +190,16 @@ const WALLET_AGENT_ABI = [
     ],
     outputs: [],
   },
+  {
+    name: "dispatchAction",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "value", type: "uint256" },
+    ],
+    outputs: [],
+  },
 ];
 
 const SMART_WALLET_ABI = [
@@ -229,7 +239,7 @@ const DEFAULT_WALLET_AGENT_ADDRESS =
 
 export function useSmartWallet() {
   const { address, isConnected, connector } = useAccount();
-  const { connect, connectors } = useConnect();
+  const { connect, connectAsync, connectors, error: connectError, status: connectStatus } = useConnect();
   const { disconnect } = useDisconnect();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
@@ -245,6 +255,14 @@ export function useSmartWallet() {
     totalWallets: 0,
     totalExecutions: 0,
   });
+
+  // Propagate wagmi connect errors to local error state
+  useEffect(() => {
+    if (connectError) {
+      console.error("Wagmi connect error:", connectError);
+      setError(connectError.message || "Wallet connection failed");
+    }
+  }, [connectError]);
 
   // Load deployment config
   useEffect(() => {
@@ -267,7 +285,8 @@ export function useSmartWallet() {
     if (isConnected && connector) {
       const isCoinbase =
         connector.id === "coinbaseWalletSDK" ||
-        connector.name?.includes("Coinbase");
+        connector.id === "coinbaseWallet" ||
+        connector.name?.toLowerCase().includes("coinbase");
       setIsSmartWallet(isCoinbase);
     }
   }, [isConnected, connector]);
@@ -291,18 +310,28 @@ export function useSmartWallet() {
   const connectSmartWallet = useCallback(async () => {
     setError(null);
     try {
-      const cbConnector = connectors.find(
-        (c) => c.id === "coinbaseWalletSDK" || c.name?.includes("Coinbase"),
-      );
-      if (cbConnector) {
-        connect({ connector: cbConnector });
+      // Find Coinbase connector for Smart Wallet
+      let connector = connectors.find((c) => c.id === "coinbaseWalletSDK" || c.id === "coinbaseWallet" || c.name?.toLowerCase().includes("coinbase"));
+      
+      // Fallback
+      if (!connector && connectors.length > 0) {
+        connector = connectors[0];
+      }
+
+      if (connector) {
+        console.log("[DarkAgent] Connecting with connector:", connector.id, connector.name);
+        await connectAsync({ connector });
+        console.log("[DarkAgent] Connection successful");
       } else {
-        setError("Coinbase Wallet connector not found");
+        const msg = "No wallet connectors available. Please refresh the page.";
+        console.error(msg, "Available connectors:", connectors);
+        setError(msg);
       }
     } catch (err) {
-      setError(err.message);
+      console.error("[DarkAgent] Connect wallet error:", err);
+      setError(err.shortMessage || err.message || "Wallet connection failed");
     }
-  }, [connect, connectors]);
+  }, [connectAsync, connectors]);
 
   /**
    * Disconnect the wallet

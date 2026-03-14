@@ -1,0 +1,86 @@
+{
+  "alice.eth": {
+    "owner": "alice.eth",
+    "active": true,
+    "persona": "balanced",
+    "maxTradeUsd": 800,
+    "dailyLimitUsd": 2400,
+    "dailySpentUsd": 0,
+    "spendWindowStartedAt": "2026-03-15T00:00:00.000Z",
+    "trustedProtocols": [
+      "uniswap",
+      "jupiter",
+      "aave",
+      "raydium",
+      "1inch"
+    ],
+    "trustedProtocolsOnly": true,
+    "allowedTokens": [
+      "USDC",
+      "ETH",
+      "SOL",
+      "AAVE"
+    ],
+    "maxSlippageBps": 125,
+    "minLiquidityUsd": 250000,
+    "blockMemeCoins": true,
+    "blockUnknownTokens": true,
+    "allowTopTokensOnly": false,
+    "allowLowLiquidityAssets": false,
+    "autoDownsize": true,
+    "sourceLimits": {
+      "ai_bot": 300,
+      "influencer": 200,
+      "telegram": 150,
+      "friend": 150,
+      "copy_trader": 250,
+      "community": 150,
+      "unknown": 0
+    },
+    "notifyEmail": "alice@darkagent.demo",
+    "bitgoPolicyId": "bitgo-alice-eth",
+    "notes": "Balanced retail profile for social and AI Blink trading.",
+    "updatedAt": "2026-03-15T00:00:00.000Z"
+  },
+  "ops.eth": {
+    "owner": "ops.eth",
+    "active": false,
+    "persona": "conservative",
+    "maxTradeUsd": 300,
+    "dailyLimitUsd": 900,
+    "dailySpentUsd": 0,
+    "spendWindowStartedAt": "2026-03-15T00:00:00.000Z",
+    "trustedProtocols": [
+      "uniswap",
+      "jupiter",
+      "aave",
+      "1inch"
+    ],
+    "trustedProtocolsOnly": true,
+    "allowedTokens": [
+      "USDC",
+      "ETH",
+      "SOL"
+    ],
+    "maxSlippageBps": 75,
+    "minLiquidityUsd": 1000000,
+    "blockMemeCoins": true,
+    "blockUnknownTokens": true,
+    "allowTopTokensOnly": true,
+    "allowLowLiquidityAssets": false,
+    "autoDownsize": true,
+    "sourceLimits": {
+      "ai_bot": 300,
+      "influencer": 150,
+      "telegram": 120,
+      "friend": 100,
+      "copy_trader": 180,
+      "community": 100,
+      "unknown": 0
+    },
+    "notifyEmail": "ops@darkagent.demo",
+    "bitgoPolicyId": "bitgo-ops-eth",
+    "notes": "Frozen profile for emergency demonstrations.",
+    "updatedAt": "2026-03-15T00:00:00.000Z"
+  }
+}

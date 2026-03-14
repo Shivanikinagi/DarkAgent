@@ -7,3 +7,5 @@ coverage/
 coverage.json
 .env
 *.log
+TrustNet-temp/
+*.mp4

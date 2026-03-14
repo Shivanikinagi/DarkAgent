@@ -8,7 +8,7 @@
 
 import { http, createConfig } from "wagmi";
 import { baseSepolia, base } from "wagmi/chains";
-import { coinbaseWallet } from "wagmi/connectors";
+import { coinbaseWallet, injected } from "wagmi/connectors";
 
 // Coinbase Smart Wallet Factory address on Base Sepolia
 export const SMART_WALLET_FACTORY =
@@ -22,6 +22,7 @@ export const BASE_SEPOLIA_CHAIN_ID = 84532;
  *
  * Key features:
  * - Coinbase Smart Wallet (ERC-4337) as primary connector
+ * - Injected provider (MetaMask, etc.) as fallback
  * - Supports passkeys and EOA ownership
  * - Configured for Base Sepolia testnet
  * - Automatic smart wallet creation on first connection
@@ -31,9 +32,13 @@ export const wagmiConfig = createConfig({
   connectors: [
     coinbaseWallet({
       appName: "DarkAgent Protocol",
-      // preference: 'smartWalletOnly' forces smart wallet creation
-      // preference: 'all' allows both EOA and smart wallet
-      preference: "smartWalletOnly",
+      // preference: 'all' allows both EOA and smart wallet connections
+      preference: "all",
+      enableMobileWalletLink: true,
+      reloadOnDisconnect: false,
+    }),
+    injected({
+      shimDisconnect: true,
     }),
   ],
   transports: {

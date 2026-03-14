@@ -3,14 +3,10 @@
   "chainId": 84532,
   "deployer": "0x6B845996450ecf86cC2CBc4b92C69d37F87f42d4",
   "contracts": {
-    "DarkAgent": "0xB50947Caa9F8a179EBA3A6545b267699aFF361BE",
-    "CoinbaseSmartWalletAgent": "0x0000000000000000000000000000000000000000",
+    "DarkAgent": "0x9365a694307E4D51d79dcbF70faaca445DC07f8D",
+    "ENSAgentResolver": "0x4838e05f871b8961384ED99f283469971f4a034c",
+    "CoinbaseSmartWalletAgent": "0xf58A0b7936AB8B5e723d4f8CF1A9E2074d37A445",
     "CoinbaseSmartWalletFactory": "0x0BA5ED0c6AA8c49038F819E587E2633c4A9F428a"
-  },
-  "smartWallet": {
-    "factory": "0x0BA5ED0c6AA8c49038F819E587E2633c4A9F428a",
-    "agent": "0x0000000000000000000000000000000000000000",
-    "note": "Deploy CoinbaseSmartWalletAgent using: npx hardhat run scripts/deploy-smart-wallet.js --network base_sepolia"
   },
   "agents": {
     "demoAgent": {
@@ -18,5 +14,5 @@
       "ensName": "voting-agent.eth"
     }
   },
-  "deployedAt": "2026-03-13T07:32:51.890Z"
+  "deployedAt": "2026-03-14T10:40:33.092Z"
 }

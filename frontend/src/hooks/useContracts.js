@@ -23,16 +23,30 @@ function getUsableAddress(address) {
     return address
 }
 
-async function switchToBaseSepolia() {
-    if (!window.ethereum) return
+function getInjectedProvider() {
+    if (typeof window === 'undefined') return null
+    const eth = window.ethereum
+    if (!eth) return null
+
+    if (Array.isArray(eth.providers) && eth.providers.length > 0) {
+        const metamaskProvider = eth.providers.find((p) => p?.isMetaMask)
+        return metamaskProvider || eth.providers[0]
+    }
+
+    return eth
+}
+
+async function switchToBaseSepolia(injectedProvider) {
+    const provider = injectedProvider || getInjectedProvider()
+    if (!provider) return
     try {
-        await window.ethereum.request({
+        await provider.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: '0x' + BASE_SEPOLIA_CHAIN_ID.toString(16) }],
         })
     } catch (switchError) {
         if (switchError.code === 4902) {
-            await window.ethereum.request({
+            await provider.request({
                 method: 'wallet_addEthereumChain',
                 params: [{
                     chainId: '0x' + BASE_SEPOLIA_CHAIN_ID.toString(16),
@@ -56,25 +70,11 @@ export function useContracts() {
     const [error, setError] = useState(null)
     const [isLive, setIsLive] = useState(false)
 
-    const connectMetaMask = useCallback(async () => {
-        if (!window.ethereum) {
-            setError("MetaMask is not installed.")
-            return
-        }
+    const setupProvider = useCallback(async (injectedProvider = null) => {
+        const selectedProvider = injectedProvider || getInjectedProvider()
+        if (!selectedProvider) return
         try {
-            await window.ethereum.request({ method: 'eth_requestAccounts' })
-            await switchToBaseSepolia()
-            setupProvider()
-        } catch (err) {
-            console.error(err)
-            setError(err.message)
-        }
-    }, [])
-
-    const setupProvider = useCallback(async () => {
-        if (!window.ethereum) return
-        try {
-            const browserProvider = new ethers.BrowserProvider(window.ethereum)
+            const browserProvider = new ethers.BrowserProvider(selectedProvider)
             const network = await browserProvider.getNetwork()
             const accs = await browserProvider.listAccounts()
 
@@ -129,15 +129,37 @@ export function useContracts() {
         }
     }, [])
 
+    const connectMetaMask = useCallback(async () => {
+        const selectedProvider = getInjectedProvider()
+        if (!selectedProvider) {
+            setError('No injected wallet found. Please install MetaMask.')
+            return
+        }
+        try {
+            await selectedProvider.request({ method: 'eth_requestAccounts' })
+            await switchToBaseSepolia(selectedProvider)
+            await setupProvider(selectedProvider)
+        } catch (err) {
+            console.error(err)
+            if (err?.message?.includes('already pending')) {
+                setError('Connection request already pending. Please open MetaMask.')
+            } else {
+                setError(err.message)
+            }
+        }
+    }, [setupProvider])
+
     useEffect(() => {
         setupProvider()
-        
-        if (window.ethereum) {
-            window.ethereum.on('accountsChanged', setupProvider)
-            window.ethereum.on('chainChanged', setupProvider)
+
+        const selectedProvider = getInjectedProvider()
+        if (selectedProvider) {
+            const syncProviderState = () => setupProvider(selectedProvider)
+            selectedProvider.on('accountsChanged', syncProviderState)
+            selectedProvider.on('chainChanged', syncProviderState)
             return () => {
-                window.ethereum.removeListener('accountsChanged', setupProvider)
-                window.ethereum.removeListener('chainChanged', setupProvider)
+                selectedProvider.removeListener('accountsChanged', syncProviderState)
+                selectedProvider.removeListener('chainChanged', syncProviderState)
             }
         }
     }, [setupProvider])

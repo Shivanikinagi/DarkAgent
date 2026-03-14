@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+build-log.txt
+build.log
+delete_target.txt
+target*.txt
+targ*.txt
+tmp*.txt
+out*.txt
+err*.txt
+*dump*.txt
+fix_script.cjs

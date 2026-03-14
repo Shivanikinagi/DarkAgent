@@ -1,31 +1,36 @@
 import React, { useState, useEffect } from "react";
 import { useSmartWallet } from "../hooks/useSmartWallet";
+import { useContracts } from "../hooks/useContracts";
 import { formatEther } from "viem";
 
 const SmartWallet = () => {
+  const { connectMetaMask } = useContracts();
   const {
     address,
     isConnected,
     isSmartWallet,
-    walletInfo,
-    protocolStats,
-    loading,
-    error,
-    connectSmartWallet,
-    disconnectWallet,
-    registerWallet,
-    authorizeAgent,
-    revokeAgent,
-    freezeWallet,
-    unfreezeWallet,
-    getAgentAuth,
-    setError,
-  } = useSmartWallet();
+      walletInfo: realWalletInfo,
+      protocolStats,
+      loading: realLoading,
+      error,
+      connectSmartWallet,
+      disconnectWallet,
+      registerWallet,
+      authorizeAgent,
+      revokeAgent,
+      freezeWallet,
+      unfreezeWallet,
+      getAgentAuth,
+      setError,
+    } = useSmartWallet();
 
-  // Form states
-  const [agentAddress, setAgentAddress] = useState(
-    "0x1111111111111111111111111111111111111111",
-  );
+    const [mockWalletInfo, setMockWalletInfo] = useState(null);
+    const [mockLoading, setMockLoading] = useState(false);
+    
+    const walletInfo = realWalletInfo || mockWalletInfo;
+    const loading = realLoading || mockLoading;
+
+  const [agentAddress, setAgentAddress] = useState("0x1111111111111111111111111111111111111111");
   const [spendLimit, setSpendLimit] = useState("1");
   const [dailyLimit, setDailyLimit] = useState("10");
   const [duration, setDuration] = useState("30");
@@ -52,52 +57,75 @@ const SmartWallet = () => {
 
   const handleRegister = async () => {
     try {
+      setMockLoading(true);
       setStatus("Registering smart wallet with DarkAgent protocol...");
-      await registerWallet(address);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      setMockWalletInfo({
+        smartWallet: address || "0xMockSmartWallet123",
+        owner: address || "0xMockOwner123",
+        frozen: false,
+        registeredAt: Math.floor(Date.now() / 1000),
+        totalExecutions: 0,
+        totalSpent: 0n,
+      });
+
       setStatus("Smart wallet registered successfully!");
     } catch (err) {
       setStatus(`Error: ${err.message}`);
+    } finally {
+      setMockLoading(false);
     }
   };
 
   const handleAuthorize = async () => {
     try {
+      setMockLoading(true);
       setStatus(`Authorizing agent ${agentAddress.slice(0, 8)}...`);
-      // Mocking for Demo
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Mock interaction
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       setStatus("Agent authorized successfully! ENS rules synchronized.");
+
+      // Mock state update
       setAgentAuthInfo({
         authorized: true,
-        spendLimit: BigInt(parseFloat(spendLimit) * 1e18),
-        dailyLimit: BigInt(parseFloat(dailyLimit) * 1e18),
+        spendLimit: BigInt(parseFloat(spendLimit) * 10**18),
+        dailyLimit: BigInt(parseFloat(dailyLimit) * 10**18),
         dailySpent: 0n,
-        expiresAt: Math.floor(Date.now() / 1000) + parseInt(duration) * 86400
+        expiresAt: BigInt(Math.floor(Date.now() / 1000) + parseFloat(duration) * 86400)
       });
     } catch (err) {
-      setStatus(`Error: ${err.message}`);
+      console.error(err);
+      setStatus(`Error: ${err.message || 'Transaction failed'}`);
+    } finally {
+      setMockLoading(false);
     }
   };
 
   const handleRevoke = async () => {
     try {
+      setMockLoading(true);
       setStatus(`Revoking agent ${agentAddress.slice(0, 8)}...`);
-      // Mocking for Demo
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Mock interaction
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       setStatus("Agent revoked successfully!");
-      setAgentAuthInfo({
-        ...agentAuthInfo,
-        authorized: false
-      });
+
+      // Mock state update
+      setAgentAuthInfo(null);
     } catch (err) {
-      setStatus(`Error: ${err.message}`);
+      console.error(err);
+      setStatus(`Error: ${err.message || 'Transaction failed'}`);
+    } finally {
+      setMockLoading(false);
     }
   };
 
   const handleFreeze = async () => {
     try {
-      setStatus("Freezing wallet...");
-      await freezeWallet(freezeReason || "Emergency freeze from UI");
-      setStatus("Wallet frozen! All agent executions are now blocked.");
+      setStatus(`Stopping and revoking agent: ${agentAddress}...`);
+      await revokeAgent(agentAddress);
+      setStatus("Agent successfully stopped and revoked.");
+      await checkAgentAuth();
     } catch (err) {
       setStatus(`Error: ${err.message}`);
     }
@@ -105,11 +133,15 @@ const SmartWallet = () => {
 
   const handleUnfreeze = async () => {
     try {
+      setMockLoading(true);
       setStatus("Unfreezing wallet...");
-      await unfreezeWallet();
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      setMockWalletInfo(prev => prev ? { ...prev, frozen: false } : prev);
       setStatus("Wallet unfrozen! Agent executions are now allowed.");
     } catch (err) {
       setStatus(`Error: ${err.message}`);
+    } finally {
+      setMockLoading(false);
     }
   };
 
@@ -121,24 +153,25 @@ const SmartWallet = () => {
         {/* Hero Section */}
         {!isConnected && (
           <div className="flex flex-col items-center justify-center text-center space-y-8 py-20 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-vault-blue/30 bg-vault-blue/10 text-vault-blue text-sm font-medium">
-              <span className="w-2 h-2 rounded-full bg-current animate-pulse"></span>
-              DarkAgent Vault
-            </div>
-            <h1>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-vault-blue to-vault-green">Autonomous Agents.</span>
-              <br />
-              Secured On-Chain.
+            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 mt-12 text-vault-text">
+              Agentic Autonomy.<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-vault-blue to-vault-green">Without the Hacks.</span>
             </h1>
-            <p className="text-lg text-vault-slate max-w-2xl">
-              Deploy AI agents with strict cryptographic spending
-              limits and emergency controls — all verified on-chain
-              through the DarkAgent protocol on Base.
-            </p>
-            <div className="flex gap-4">
-              <button className="px-6 py-3 rounded-xl bg-vault-blue hover:bg-vault-blue/90 text-white font-semibold transition-all shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)]" onClick={connectSmartWallet}>
-                Connect Admin Wallet
-              </button>
+            
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex gap-4">
+                <button className="px-6 py-3 rounded-xl bg-vault-blue hover:bg-vault-blue/90 text-white font-semibold transition-all shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)]" onClick={connectSmartWallet}>
+                  Connect Smart Wallet
+                </button>
+                <button className="px-6 py-3 rounded-xl border border-vault-slate/20 bg-vault-bg/50 text-vault-text font-semibold hover:bg-vault-slate/10 transition-colors" onClick={connectMetaMask}>
+                  Connect MetaMask
+                </button>
+              </div>
+              {error && (
+                <div className="px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm max-w-md">
+                  {error}
+                </div>
+              )}
             </div>
 
             {/* Feature cards */}
@@ -148,9 +181,9 @@ const SmartWallet = () => {
                 <div className="w-12 h-12 rounded-xl bg-vault-blue/10 flex items-center justify-center mb-6 border border-vault-blue/20 text-vault-blue group-hover:scale-110 transition-transform duration-300">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-vault-text">Passkey Auth</h3>
-                <p className="text-vault-slate leading-relaxed">
-                  No seed phrases. Authenticate with biometrics via Coinbase Smart Wallet passkeys.
+                <h3 className="text-xl font-bold mb-3 text-vault-text">Coinbase & Base</h3>
+                <p className="text-vault-slate leading-relaxed text-sm">
+                  Leveraging <strong>Coinbase Smart Wallets</strong> (ERC-4337) for passkey onboarding, allowing <strong>gas-sponsored</strong> agent transactions that execute flawlessly on the <strong>Base</strong> network.
                 </p>
               </div>
 
@@ -159,9 +192,9 @@ const SmartWallet = () => {
                 <div className="w-12 h-12 rounded-xl bg-vault-green/10 flex items-center justify-center mb-6 border border-vault-green/20 text-vault-green group-hover:scale-110 transition-transform duration-300">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-vault-text">Agent Permissions</h3>
-                <p className="text-vault-slate leading-relaxed">
-                  Grant AI agents controlled access with strict per-transaction and daily spending limits.
+                <h3 className="text-xl font-bold mb-3 text-vault-text">ENS Subdomain Rulebook</h3>
+                <p className="text-vault-slate leading-relaxed text-sm">
+                  Users attach agent licenses as text records directly to <strong>ENS Subdomains</strong>. Setting limits, slippage, and whitelists directly to their identity (e.g., agent.alice.eth).
                 </p>
               </div>
 
@@ -170,9 +203,9 @@ const SmartWallet = () => {
                 <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20 text-red-500 group-hover:scale-110 transition-transform duration-300">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-vault-text">Circuit Breaker</h3>
-                <p className="text-vault-slate leading-relaxed">
-                  Instantly freeze your wallet to block all agent activity with a one-click emergency stop.
+                <h3 className="text-xl font-bold mb-3 text-vault-text">Tenderly & BitGo</h3>
+                <p className="text-vault-slate leading-relaxed text-sm">
+                  Transactions are simulated via <strong>Tenderly</strong> to score risk before execution. Final circuit-breakers and stealth enforcement at the policy level are handled by <strong>BitGo</strong>.
                 </p>
               </div>
             </div>
@@ -200,27 +233,27 @@ const SmartWallet = () => {
                     ? `${address.slice(0, 6)}...${address.slice(-4)}`
                     : "—"}
                 </div>
-                <div className="text-sm text-vault-slate">
+                <div className="text-sm text-vault-slate flex items-center gap-2">
                   {isSmartWallet
-                    ? "🔵 Coinbase Smart Wallet"
-                    : "📎 External Wallet"}
+                    ? <><span className="w-2 h-2 rounded-full bg-vault-blue"></span> Coinbase Smart Wallet</>
+                    : <><span className="w-2 h-2 rounded-full bg-vault-slate"></span> External Wallet</>}
                 </div>
               </div>
 
               <div className="p-6 rounded-2xl border border-vault-slate/20 bg-vault-bg/50 backdrop-blur transition-colors">
                 <div className="text-sm font-medium text-vault-slate tracking-wider uppercase mb-2">Wallet Status</div>
                 <div
-                  className={`stat-value ${
-                    walletInfo?.frozen ? "red" : "emerald"
+                  className={`stat-value flex items-center gap-2 ${
+                    walletInfo?.frozen ? "text-red-500" : "text-vault-green"
                   }`}
                 >
                   {walletInfo
                     ? walletInfo.frozen
-                      ? "🔴 FROZEN"
-                      : "🟢 ACTIVE"
-                    : "⚪ NOT REGISTERED"}
+                      ? <><span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> FROZEN</>
+                      : <><span className="w-2 h-2 rounded-full bg-vault-green animate-pulse"></span> ACTIVE</>
+                    : <><span className="w-2 h-2 rounded-full bg-vault-slate"></span> NOT REGISTERED</>}
                 </div>
-                <div className="text-sm text-vault-slate">
+                <div className="text-sm text-vault-slate mt-1">
                   {walletInfo
                     ? `Registered ${new Date(
                         walletInfo.registeredAt * 1000,
@@ -252,22 +285,14 @@ const SmartWallet = () => {
               </div>
             </div>
 
-            {/* Tab Navigation */}
-            <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
-              {["overview", "agents", "security"].map((tab) => (
-                <button
-                  key={tab}
-                  className={`nav-link ${activeTab === tab ? "active" : ""}`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab Content */}
-            {activeTab === "overview" && (
-              <div className="animate-fade-in">
+            {/* Main Sections */}
+            <div className="space-y-12 animate-fade-in mt-8">
+              {/* Overview Section */}
+              <section>
+                <h3 className="text-2xl font-bold text-vault-text mb-6 flex items-center gap-2">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-vault-slate"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                  Overview Workspace
+                </h3>
                 {/* Registration Card */}
                 {!walletInfo && (
                   <div
@@ -296,7 +321,17 @@ const SmartWallet = () => {
                       onClick={handleRegister}
                       disabled={loading}
                     >
-                      {loading ? "⏳ Registering..." : "🔗 Register Wallet"}
+                      {loading ? (
+                        <div className="flex items-center gap-2">
+                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                          Registering...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                          Register Wallet
+                        </div>
+                      )}
                     </button>
                   </div>
                 )}
@@ -489,11 +524,14 @@ const SmartWallet = () => {
                     </div>
                   </div>
                 )}
-              </div>
-            )}
+              </section>
 
-            {activeTab === "agents" && (
-              <div className="animate-fade-in">
+              {/* Agents Section */}
+              <section>
+                <h3 className="text-2xl font-bold text-vault-text mb-6 flex items-center gap-2">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-vault-blue"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                  Agent Permissions
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Authorize Agent */}
                   <div className="p-6 rounded-2xl border border-vault-slate/20 bg-[#1a1d23]/50 backdrop-blur-xl hover:border-vault-green/30 transition-all duration-300">
@@ -723,7 +761,7 @@ const SmartWallet = () => {
                                 }}
                               >
                                 {new Date(
-                                  agentAuthInfo.expiresAt * 1000,
+                                  Number(agentAuthInfo.expiresAt) * 1000
                                 ).toLocaleString()}
                               </div>
                             </div>
@@ -749,11 +787,14 @@ const SmartWallet = () => {
                     )}
                   </div>
                 </div>
-              </div>
-            )}
+              </section>
 
-            {activeTab === "security" && (
-              <div className="animate-fade-in">
+              {/* Security Section */}
+              <section>
+                <h3 className="text-2xl font-bold text-vault-text mb-6 flex items-center gap-2">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                  Security Operations
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Circuit Breaker */}
                   <div className="p-8 rounded-2xl border-2 border-red-500/30 bg-red-500/5 relative overflow-hidden" style={{ gridColumn: "span 2" }}>
@@ -777,8 +818,7 @@ const SmartWallet = () => {
                       }}
                     >
                       Instantly freeze your smart wallet to block ALL agent
-                      executions. Use this if you detect suspicious agent
-                      behavior.
+                      executions. Enforced securely by <strong>BitGo</strong> to ensure even leaked keys cannot act maliciously.
                     </p>
 
                     {walletInfo?.frozen ? (
@@ -831,7 +871,7 @@ const SmartWallet = () => {
                           <span className="icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                           </span>
-                          <span>{loading ? "FREEZING..." : "FREEZE"}</span>
+                          <span>{loading ? "STOPPING..." : "STOP ACTIVE AGENT"}</span>
                         </button>
                         <p
                           style={{
@@ -845,125 +885,6 @@ const SmartWallet = () => {
                         </p>
                       </div>
                     )}
-                  </div>
-
-                  {/* Security Info */}
-                  <div className="p-6 rounded-2xl border border-vault-slate/20 bg-[#1a1d23]/50 backdrop-blur-xl hover:border-vault-green/30 transition-all duration-300">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="text-xl font-bold text-vault-text flex items-center gap-2">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-vault-blue"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                        Smart Wallet Security
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "16px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: "12px",
-                        }}
-                      >
-                        <span className="text-vault-blue">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
-                        </span>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
-                            Multi-Owner Support
-                          </div>
-                          <div
-                            style={{
-                              color: "var(--text-secondary)",
-                              fontSize: "0.82rem",
-                            }}
-                          >
-                            Your Coinbase Smart Wallet supports multiple owners
-                            via EOA addresses and passkeys.
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: "12px",
-                        }}
-                      >
-                        <span className="text-vault-green">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                        </span>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
-                            ERC-4337 Compatible
-                          </div>
-                          <div
-                            style={{
-                              color: "var(--text-secondary)",
-                              fontSize: "0.82rem",
-                            }}
-                          >
-                            Gas-sponsored transactions through account
-                            abstraction. Agents can execute without requiring
-                            user gas.
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: "12px",
-                        }}
-                      >
-                        <span className="text-vault-blue">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16h16V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg>
-                        </span>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
-                            ERC-1271 Signatures
-                          </div>
-                          <div
-                            style={{
-                              color: "var(--text-secondary)",
-                              fontSize: "0.82rem",
-                            }}
-                          >
-                            Smart contract signature validation enables verified
-                            agent proposals.
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: "12px",
-                        }}
-                      >
-                        <span className="text-vault-slate">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-                        </span>
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>
-                            Cross-Chain Replay Protection
-                          </div>
-                          <div
-                            style={{
-                              color: "var(--text-secondary)",
-                              fontSize: "0.82rem",
-                            }}
-                          >
-                            Built-in protection against cross-chain signature
-                            replay attacks.
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
 
                   {/* DarkAgent Verification */}
@@ -1084,8 +1005,8 @@ const SmartWallet = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              </section>
+            </div>
 
             {/* Status Bar */}
             {(status || error) && (

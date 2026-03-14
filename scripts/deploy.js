@@ -13,13 +13,37 @@ async function main() {
     const balance = await ethers.provider.getBalance(deployer.address);
     console.log("💰 Balance:", ethers.formatEther(balance), "ETH\n");
 
+    // Deploy ENS Agent Resolver
+    console.log("━━━ Deploying ENS Agent Resolver ━━━");
+    const ENSResolver = await ethers.getContractFactory("ENSAgentResolver");
+    const ensResolver = await ENSResolver.deploy();
+    await ensResolver.waitForDeployment();
+    const ensAddress = await ensResolver.getAddress();
+    console.log("✅ ENSAgentResolver deployed at:", ensAddress);
+
     // Deploy DarkAgent Protocol
     console.log("━━━ Deploying DarkAgent Core Protocol ━━━");
     const DarkAgent = await ethers.getContractFactory("DarkAgent");
-    const darkAgent = await DarkAgent.deploy();
+    const darkAgent = await DarkAgent.deploy(ensAddress);
     await darkAgent.waitForDeployment();
     const darkAgentAddress = await darkAgent.getAddress();
     console.log("✅ DarkAgent deployed at:", darkAgentAddress);
+
+    // Deploy CoinbaseSmartWalletAgent
+    console.log("━━━ Deploying CoinbaseSmartWalletAgent ━━━");
+    // Mock Coinbase Smart Wallet Factory for testing
+    const MockFactory = await ethers.getContractFactory("contracts/interfaces/ICoinbaseSmartWallet.sol:ICoinbaseSmartWalletFactory").catch(() => null);
+    
+    // We can use a mock address or deploy a mock if needed.
+    // For testnet, usually we point to the real factory.
+    // Using a placeholder factory address (real one on base sepolia: 0x0BA5ED0c6AA8c49038F819E587E2633c4A9F428a)
+    const CB_FACTORY = "0x0BA5ED0c6AA8c49038F819E587E2633c4A9F428a"; 
+
+    const CBAgent = await ethers.getContractFactory("CoinbaseSmartWalletAgent");
+    const cbAgent = await CBAgent.deploy(darkAgentAddress, CB_FACTORY);
+    await cbAgent.waitForDeployment();
+    const cbAgentAddress = await cbAgent.getAddress();
+    console.log("✅ CoinbaseSmartWalletAgent deployed at:", cbAgentAddress);
 
     // Save deployment info for frontend
     const deployment = {
@@ -27,7 +51,10 @@ async function main() {
         chainId: 84532,
         deployer: deployer.address,
         contracts: {
-            DarkAgent: darkAgentAddress
+            DarkAgent: darkAgentAddress,
+            ENSAgentResolver: ensAddress,
+            CoinbaseSmartWalletAgent: cbAgentAddress,
+            CoinbaseSmartWalletFactory: CB_FACTORY
         },
         agents: {
             demoAgent: {

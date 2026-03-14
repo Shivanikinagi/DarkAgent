@@ -1,14 +1,18 @@
 {
     "name": "darkagent",
     "version": "1.0.0",
-    "description": "DarkAgent — Verifiable AI Agent Infrastructure for ETHMumbai 2026",
+    "description": "DarkAgent \u00e2\u20ac\u201d Verifiable AI Agent Infrastructure for ETHMumbai 2026",
     "scripts": {
         "compile": "npx hardhat compile",
         "test": "npx hardhat test",
         "deploy": "npx hardhat run scripts/deploy.js --network base_sepolia",
         "deploy:local": "npx hardhat run scripts/deploy-local.js --network localhost",
         "verify": "npx hardhat verify --network base_sepolia",
-        "node": "npx hardhat node"
+        "node": "npx hardhat node",
+        "blink": "node server/index.js",
+        "blink:server": "node server/index.js",
+        "blink:test": "node test/BlinkProxyServer.test.js",
+        "demo:blink": "node scripts/start-blink-demo.js"
     },
     "devDependencies": {
         "@nomicfoundation/hardhat-toolbox": "^4.0.0",
