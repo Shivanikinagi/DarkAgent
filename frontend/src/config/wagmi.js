@@ -27,7 +27,7 @@ export const BASE_SEPOLIA_CHAIN_ID = 84532;
  * - Automatic smart wallet creation on first connection
  */
 export const wagmiConfig = createConfig({
-  chains: [baseSepolia, base],
+  chains: [baseSepolia],
   connectors: [
     coinbaseWallet({
       appName: "DarkAgent Protocol",
@@ -38,7 +38,6 @@ export const wagmiConfig = createConfig({
   ],
   transports: {
     [baseSepolia.id]: http("https://sepolia.base.org"),
-    [base.id]: http("https://mainnet.base.org"),
   },
 });
 

@@ -17,6 +17,12 @@ async function loadDeploymentConfig() {
 const BASE_SEPOLIA_CHAIN_ID = 84532
 const BASE_SEPOLIA_RPC = 'https://sepolia.base.org'
 
+function getUsableAddress(address) {
+    if (!address || !ethers.isAddress(address)) return null
+    if (address === ethers.ZeroAddress) return null
+    return address
+}
+
 async function switchToBaseSepolia() {
     if (!window.ethereum) return
     try {
@@ -82,28 +88,44 @@ export function useContracts() {
                 setConnected(true)
 
                 const config = await loadDeploymentConfig()
-                if (config && config.contracts?.DarkAgent) {
+                const darkAgentAddress = getUsableAddress(config?.contracts?.DarkAgent)
+                const permissionsAddress = getUsableAddress(config?.contracts?.Permissions)
+
+                if (darkAgentAddress) {
                     const darkAgent = new ethers.Contract(
-                        config.contracts.DarkAgent,
+                        darkAgentAddress,
                         DARKAGENT_PROTOCOL_ABI,
                         s
                     )
-                    
-                    const permissionsContract = new ethers.Contract(
-                        config.contracts.Permissions,
-                        PERMISSIONS_ABI,
-                        s
-                    )
+
+                    const permissionsContract = permissionsAddress
+                        ? new ethers.Contract(
+                            permissionsAddress,
+                            PERMISSIONS_ABI,
+                            s
+                        )
+                        : null
                     
                     setContracts({ darkAgent, permissionsContract })
                     setIsLive(true)
+                    setError(
+                        permissionsAddress
+                            ? null
+                            : 'Permissions contract is not deployed in deployment.json; permissions features are disabled.'
+                    )
+                } else {
+                    setContracts(null)
+                    setIsLive(false)
+                    setError('DarkAgent contract is missing or invalid in deployment.json.')
                 }
             } else {
                 setConnected(false)
                 setIsLive(false)
+                setContracts(null)
             }
         } catch (err) {
             console.error("Setup error:", err)
+            setError(err.message)
         }
     }, [])
 

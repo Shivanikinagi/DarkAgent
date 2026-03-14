@@ -42,50 +42,61 @@ const Permissions = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold mb-6">1. Set ENS Agent Permissions</h2>
-            <div className="bg-white shadow sm:rounded-lg mb-8">
-                <div className="px-4 py-5 sm:p-6 space-y-4">
-                    <p className="text-gray-600">This simulates setting an ENS Text Record (agent.permissions) which the DarkAgent protocol will strictly enforce across DeFi.</p>
+        <div className="theme-page theme-stack">
+            <section className="theme-hero">
+                <span className="theme-kicker">Permissions</span>
+                <h1 className="theme-title">Set clear limits for what your agent is allowed to do.</h1>
+                <p className="theme-copy">Define spending and slippage limits, then sync them so execution stays inside your rules.</p>
+            </section>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">ENS Name / Target Account</label>
+            <div className="theme-panel">
+                <p className="theme-note" style={{ marginBottom: '18px' }}>This simulates setting an ENS text record that the DarkAgent protocol can enforce across downstream actions.</p>
+
+                <div className="theme-grid">
+                    <div className="input-group">
+                        <label>ENS Name / Target Account</label>
                         <input
                             type="text"
                             value={ensName}
                             onChange={e => setEnsName(e.target.value)}
-                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border"
+                            className="input input-mono"
                             disabled
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Max Spend (ETH)</label>
+                    <div className="input-group">
+                        <label>Max Spend (ETH)</label>
                         <input
                             type="number"
                             value={maxSpend}
                             onChange={e => setMaxSpend(e.target.value)}
-                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border"
+                            className="input"
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Max Slippage (%)</label>
+                    <div className="input-group">
+                        <label>Max Slippage (%)</label>
                         <input
                             type="number"
                             step="0.1"
                             value={slippage}
                             onChange={e => setSlippage(e.target.value)}
-                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border"
+                            className="input"
                         />
                     </div>
-                    <button
-                        onClick={handleSave}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 w-full"
-                    >
-                        Save to ENS & Sync to BitGo
-                    </button>
-                    {status && <div className="mt-4 p-3 bg-gray-100 font-mono text-sm break-all">{status}</div>}
                 </div>
-            </div>
+
+                <div className="theme-actions" style={{ marginTop: '8px' }}>
+                    <button onClick={handleSave} className="btn btn-brand">
+                        Save to ENS and Sync to BitGo
+                    </button>
+                </div>
+
+                {status && (
+                    <div className="theme-status" style={{ marginTop: '20px' }}>
+                        <p>{status}</p>
+                    </div>
+                )}
+                </div>
+            
         </div>
     );
 };
