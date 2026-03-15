@@ -1,4 +1,4 @@
-const KNOWN_PROTOCOLS = new Set(["uniswap", "jupiter", "aave", "meteora", "raydium", "1inch"]);
+const KNOWN_PROTOCOLS = new Set(["uniswap", "aave", "1inch"]);
 const KNOWN_CHAINS = new Set(["solana", "ethereum", "base", "arbitrum", "polygon"]);
 const TOP_TOKENS = new Set(["USDC", "USDT", "ETH", "WETH", "BTC", "WBTC", "SOL", "AAVE"]);
 const MEME_TOKENS = new Set(["DOGE", "PEPE", "BONK", "SHIB", "FLOKI", "TRUMP", "DOGEAI", "MEME"]);
@@ -13,10 +13,10 @@ function normalizeChain(value, protocol) {
   if (KNOWN_CHAINS.has(normalized)) {
     return normalized;
   }
-  if (protocol === "jupiter" || protocol === "raydium" || protocol === "meteora") {
-    return "solana";
+  if (protocol === "uniswap" || protocol === "aave" || protocol === "1inch") {
+    return "base";
   }
-  return "ethereum";
+  return "base";
 }
 
 function inferSourceCategory(url, explicitSource) {

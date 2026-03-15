@@ -61,7 +61,8 @@ export function useBlinkProxyDemo() {
     }
 
     source.onerror = () => {
-      setStreamStatus('reconnecting')
+      setStreamStatus('offline')
+      source.close()
     }
 
     const handleRefresh = (eventName) => {
@@ -122,6 +123,22 @@ export function useBlinkProxyDemo() {
     [runMutation]
   )
 
+  const createShareLink = useCallback(
+    ({ blinkUrl, ensName, meta }) =>
+      runMutation(() =>
+        request('/api/share-links', {
+          method: 'POST',
+          body: JSON.stringify({ blinkUrl, ensName, meta }),
+        })
+      ),
+    [runMutation]
+  )
+
+  const getShareLink = useCallback(
+    async (shareId) => request(`/api/share-links/${shareId}`),
+    []
+  )
+
   const updatePolicy = useCallback(
     (ensName, patch) =>
       runMutation(() =>
@@ -169,6 +186,8 @@ export function useBlinkProxyDemo() {
     refresh,
     analyzeBlinkUrl,
     executeBlinkUrl,
+    createShareLink,
+    getShareLink,
     updatePolicy,
     syncWatcher,
     resetDemo,

@@ -7,11 +7,11 @@ const { createBlinkProxyServer } = require("../server");
 
 const SAMPLE_URLS = {
   influencerMeme:
-    "https://x.com/moonalpha/status/20991?protocol=jupiter&tokenIn=USDC&tokenOut=PEPE&amountUsd=1000&slippageBps=220&liquidityUsd=65000&source=influencer&sender=%40moonalpha",
+    "https://x.com/moonalpha/status/20991?protocol=uniswap&chain=base&tokenIn=USDC&tokenOut=PEPE&amountUsd=1000&slippageBps=220&liquidityUsd=65000&source=influencer&sender=%40moonalpha",
   aiBotEth:
-    "https://ai.darkagent.trade/recommendation?protocol=uniswap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&slippageBps=80&liquidityUsd=2200000&source=ai_bot&sender=DeepTrendBot",
+    "https://ai.darkagent.trade/recommendation?protocol=uniswap&chain=base&tokenIn=USDC&tokenOut=ETH&amountUsd=800&slippageBps=80&liquidityUsd=2200000&source=ai_bot&sender=DeepTrendBot",
   safeFriend:
-    "https://friend.trade/blink?protocol=uniswap&tokenIn=USDC&tokenOut=ETH&amountUsd=120&slippageBps=40&liquidityUsd=5300000&source=friend&sender=Riya",
+    "https://friend.trade/blink?protocol=uniswap&chain=base&tokenIn=USDC&tokenOut=ETH&amountUsd=120&slippageBps=40&liquidityUsd=5300000&source=friend&sender=Riya",
 };
 
 function createTempDataDir() {

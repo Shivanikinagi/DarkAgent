@@ -17,6 +17,7 @@ const { evaluateAction } = require("./lib/policyEngine");
 const { PolicyWatcher } = require("./lib/policyWatcher");
 const { ProofService } = require("./lib/proofService");
 const { ProofStore } = require("./lib/proofStore");
+const { ShareLinkStore } = require("./lib/shareLinkStore");
 const {
   PERSONA_PRESETS,
   evaluateTradingBlink,
@@ -26,17 +27,17 @@ const SAMPLE_BLINKS = [
   {
     id: "influencer-meme",
     label: "Risky influencer Blink",
-    url: "https://x.com/moonalpha/status/20991?protocol=jupiter&tokenIn=USDC&tokenOut=PEPE&amountUsd=1000&slippageBps=220&liquidityUsd=65000&source=influencer&sender=%40moonalpha",
+    url: "https://x.com/moonalpha/status/20991?protocol=uniswap&chain=base&tokenIn=USDC&tokenOut=PEPE&amountUsd=1000&slippageBps=220&liquidityUsd=65000&source=influencer&sender=%40moonalpha",
   },
   {
     id: "ai-bot-eth",
     label: "AI bot Blink",
-    url: "https://ai.darkagent.trade/recommendation?protocol=uniswap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&slippageBps=80&liquidityUsd=2200000&source=ai_bot&sender=DeepTrendBot",
+    url: "https://ai.darkagent.trade/recommendation?protocol=uniswap&chain=base&tokenIn=USDC&tokenOut=ETH&amountUsd=800&slippageBps=80&liquidityUsd=2200000&source=ai_bot&sender=DeepTrendBot",
   },
   {
     id: "safe-friend",
     label: "Safe friend Blink",
-    url: "https://friend.trade/blink?protocol=uniswap&tokenIn=USDC&tokenOut=ETH&amountUsd=120&slippageBps=40&liquidityUsd=5300000&source=friend&sender=Riya",
+    url: "https://friend.trade/blink?protocol=uniswap&chain=base&tokenIn=USDC&tokenOut=ETH&amountUsd=120&slippageBps=40&liquidityUsd=5300000&source=friend&sender=Riya",
   },
 ];
 
@@ -114,14 +115,8 @@ function buildDynamicActionFromBlink(parsedBlink) {
   return {
     id: `${parsedBlink.protocol}-blink`,
     protocol: parsedBlink.protocol,
-    sourceChain:
-      parsedBlink.protocol === "jupiter" || parsedBlink.protocol === "raydium"
-        ? "solana"
-        : "social",
-    settlementChain:
-      parsedBlink.protocol === "jupiter" || parsedBlink.protocol === "raydium"
-        ? "solana"
-        : "base",
+    sourceChain: parsedBlink.chain === "base" ? "base" : "social",
+    settlementChain: "base",
   };
 }
 
@@ -152,6 +147,9 @@ function createBlinkProxyServer(options = {}) {
   });
   const proofStore = new ProofStore({
     filePath: path.join(dataDir, "proofs.json"),
+  });
+  const shareLinkStore = new ShareLinkStore({
+    filePath: path.join(dataDir, "share-links.json"),
   });
   const executor = new BitGoExecutionAdapter({
     mode: options.executionMode,
@@ -191,6 +189,7 @@ function createBlinkProxyServer(options = {}) {
       proofSigner: proofService.getStatus(),
       personas: PERSONA_PRESETS,
       samples: SAMPLE_BLINKS,
+      shares: Object.values(shareLinkStore.readAll()),
       live: {
         subscribers: eventHub.getStatus().subscribers,
       },
@@ -305,6 +304,7 @@ function createBlinkProxyServer(options = {}) {
             policies: `${baseUrl}/api/policies`,
             proofs: `${baseUrl}/api/proofs`,
             events: `${baseUrl}/api/events`,
+            shareLinks: `${baseUrl}/api/share-links`,
           },
         });
         return;
@@ -346,6 +346,7 @@ function createBlinkProxyServer(options = {}) {
       if (request.method === "GET" && pathName === "/api/blinks/samples") {
         writeJson(response, 200, {
           samples: SAMPLE_BLINKS,
+          shares: Object.values(shareLinkStore.readAll()),
         });
         return;
       }
@@ -506,6 +507,46 @@ function createBlinkProxyServer(options = {}) {
         writeJson(response, 200, {
           signer: proofService.getStatus(),
           proofs: proofStore.readAll(),
+        });
+        return;
+      }
+
+      if (request.method === "POST" && pathName === "/api/share-links") {
+        const body = await readRequestBody(request);
+        const blinkUrl = String(body.blinkUrl || body.url || "").trim();
+
+        if (!blinkUrl) {
+          writeJson(response, 400, {
+            error: "Blink URL is required.",
+          });
+          return;
+        }
+
+        const entry = shareLinkStore.create({
+          blinkUrl,
+          createdBy: normalizeEnsName(body.ensName || "alice.eth"),
+          meta: body.meta || {},
+        });
+
+        writeJson(response, 200, {
+          share: entry,
+        });
+        return;
+      }
+
+      if (request.method === "GET" && pathName.startsWith("/api/share-links/")) {
+        const shareId = pathName.split("/").pop();
+        const share = shareLinkStore.get(shareId);
+
+        if (!share) {
+          writeJson(response, 404, {
+            error: `No share link found for ${shareId}.`,
+          });
+          return;
+        }
+
+        writeJson(response, 200, {
+          share,
         });
         return;
       }
@@ -776,6 +817,7 @@ function createBlinkProxyServer(options = {}) {
       policyStore,
       proofService,
       proofStore,
+      shareLinkStore,
       watcher,
     },
   };

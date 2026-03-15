@@ -10,7 +10,7 @@ const PERSONA_PRESETS = {
     allowLowLiquidityAssets: false,
     maxSlippageBps: 75,
     minLiquidityUsd: 1000000,
-    trustedProtocols: ["uniswap", "jupiter", "aave", "1inch"],
+    trustedProtocols: ["uniswap", "aave", "1inch"],
     sourceLimits: {
       ai_bot: 300,
       influencer: 150,
@@ -32,7 +32,7 @@ const PERSONA_PRESETS = {
     allowLowLiquidityAssets: false,
     maxSlippageBps: 125,
     minLiquidityUsd: 250000,
-    trustedProtocols: ["uniswap", "jupiter", "aave", "raydium", "1inch"],
+    trustedProtocols: ["uniswap", "aave", "1inch"],
     sourceLimits: {
       ai_bot: 300,
       influencer: 200,
@@ -54,7 +54,7 @@ const PERSONA_PRESETS = {
     allowLowLiquidityAssets: true,
     maxSlippageBps: 250,
     minLiquidityUsd: 75000,
-    trustedProtocols: ["uniswap", "jupiter", "aave", "raydium", "meteora", "1inch"],
+    trustedProtocols: ["uniswap", "aave", "1inch"],
     sourceLimits: {
       ai_bot: 700,
       influencer: 450,

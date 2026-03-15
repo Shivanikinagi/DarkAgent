@@ -1,5 +1,268 @@
 [
   {
+    "id": "bf660d23-047c-4a09-b8ce-7783f63352a1",
+    "createdAt": "2026-03-14T22:46:50.659Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "f0efcdef-a856-4374-8ff0-9ceb850deb46",
+    "createdAt": "2026-03-14T22:40:15.474Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "a80de300-fcfe-4ea7-aaa2-a83deb272f3d",
+    "createdAt": "2026-03-14T22:40:13.038Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "f0e6daa8-a44c-4fcd-a7bf-2ff254a4c9da",
+    "createdAt": "2026-03-14T22:30:32.378Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "32b935fd-20e6-4e2a-bba9-9236864f63cd",
+    "createdAt": "2026-03-14T22:30:30.271Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "6bb9c19e-219b-4a1f-9aaf-04236d4dc20b",
+    "createdAt": "2026-03-14T22:29:47.088Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "da974d33-ab7c-4a9c-8e53-6c269ce9e962",
+    "createdAt": "2026-03-14T22:29:44.374Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "c79af3bd-2b75-475d-a547-35c8a3a577c8",
+    "createdAt": "2026-03-14T22:25:20.176Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "0277e7ea-cd86-4a12-a0e8-77693f39a67f",
+    "createdAt": "2026-03-14T22:23:55.421Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "f55d95f1-2d40-4b15-b46b-6fef3771ddce",
+    "createdAt": "2026-03-14T22:23:17.983Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "ae5678c0-e572-4a2d-adc8-02de48b5d724",
+    "createdAt": "2026-03-14T22:23:13.191Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "04886c87-49c8-4069-bf8b-d9e336360725",
+    "createdAt": "2026-03-14T22:22:11.969Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 100,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "8d38b434-555d-4ce3-b38b-eeb8d2e66e3b",
+    "createdAt": "2026-03-14T22:17:55.875Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 100,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "b26a6d44-8ca3-4917-b05e-73052442e48d",
+    "createdAt": "2026-03-14T22:17:48.940Z",
+    "type": "policy",
+    "ensName": "alice.eth",
+    "status": "updated",
+    "details": {
+      "persona": "balanced",
+      "maxTradeUsd": 500,
+      "maxSlippageBps": 10,
+      "trustedProtocolsOnly": true,
+      "blockMemeCoins": true,
+      "blockUnknownTokens": true,
+      "allowLowLiquidityAssets": false,
+      "minLiquidityUsd": 250000,
+      "trustedProtocols": [
+        "uniswap",
+        "aave",
+        "1inch"
+      ],
+      "sourceLimits": {
+        "ai_bot": 300,
+        "influencer": 200,
+        "friend": 150,
+        "unknown": 0
+      }
+    }
+  },
+  {
+    "id": "5cbb5e84-ef0f-4b93-a5ce-9e6746fd7ec9",
+    "createdAt": "2026-03-14T22:17:26.778Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "85b38c6a-da17-48f3-b6aa-c8dfebaf5cb9",
+    "createdAt": "2026-03-14T21:59:56.732Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "ai_bot",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "81065674-771d-4028-b5ad-ad9b69b820ab",
+    "createdAt": "2026-03-14T21:57:58.916Z",
+    "type": "policy",
+    "ensName": "alice.eth",
+    "status": "updated",
+    "details": {
+      "persona": "balanced",
+      "maxTradeUsd": 500,
+      "maxSlippageBps": 10,
+      "trustedProtocolsOnly": true,
+      "blockMemeCoins": true,
+      "blockUnknownTokens": true,
+      "allowLowLiquidityAssets": false,
+      "minLiquidityUsd": 250000,
+      "trustedProtocols": [
+        "uniswap",
+        "aave",
+        "1inch"
+      ],
+      "sourceLimits": {
+        "ai_bot": 300,
+        "influencer": 200,
+        "friend": 150,
+        "unknown": 0
+      }
+    }
+  },
+  {
+    "id": "d3644684-b251-4a33-945d-e3c3bd2de8ef",
+    "createdAt": "2026-03-14T20:43:14.259Z",
+    "type": "policy",
+    "ensName": "alice.eth",
+    "status": "updated",
+    "details": {
+      "maxTradeUsd": null,
+      "maxSlippageBps": null,
+      "trustedProtocolsOnly": true,
+      "blockMemeCoins": false,
+      "blockUnknownTokens": true,
+      "allowLowLiquidityAssets": false,
+      "minLiquidityUsd": 250000,
+      "trustedProtocols": [
+        "uniswap",
+        "aave",
+        "1inch"
+      ],
+      "sourceLimits": {
+        "ai_bot": 300,
+        "influencer": 200,
+        "friend": 150,
+        "unknown": 0
+      }
+    }
+  },
+  {
     "id": "2c14a1bf-772d-4f95-8ed5-737156011ec9",
     "createdAt": "2026-03-14T18:11:01.771Z",
     "type": "execution",

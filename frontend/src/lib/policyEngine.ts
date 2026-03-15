@@ -58,8 +58,8 @@ export const TOKEN_CATEGORIES: Record<string, string> = {
   RANDOMX: 'unknown',
 }
 
-export const TRUSTED_PROTOCOLS = ['Jupiter', 'Uniswap', '1inch', 'Aave']
-export const CHAIN_OPTIONS = ['Solana', 'Ethereum', 'Base', 'Arbitrum']
+export const TRUSTED_PROTOCOLS = ['Uniswap', '1inch', 'Aave']
+export const CHAIN_OPTIONS = ['Base', 'Ethereum', 'Arbitrum']
 export const ACTION_OPTIONS: ActionType[] = ['swap', 'buy', 'bridge']
 export const SOURCE_OPTIONS: SourceType[] = ['ai_bot', 'influencer', 'friend', 'telegram', 'copy_trader', 'unknown']
 
@@ -108,7 +108,7 @@ export const PERSONA_PRESETS: Record<TradingPolicy['persona'], TradingPolicy> = 
     blockMemeCoins: false,
     blockUnknownTokens: false,
     allowLowLiquidityAssets: true,
-    trustedProtocols: [...TRUSTED_PROTOCOLS, 'Meteora'],
+    trustedProtocols: TRUSTED_PROTOCOLS,
     sourceLimits: {
       ai_bot: 900,
       influencer: 600,
@@ -176,7 +176,7 @@ export function buildMockedMetrics(blink: BlinkDraft) {
   if (blink.source === 'influencer') mockedSlippageBps += 25
   if (blink.source === 'unknown') mockedSlippageBps += 35
   if (blink.amount >= 1000) mockedSlippageBps += 18
-  if (blink.protocol.toLowerCase() === 'jupiter' && blink.chain.toLowerCase() === 'solana') mockedLiquidityUsd += 300000
+  if (blink.protocol.toLowerCase() === 'uniswap' && blink.chain.toLowerCase() === 'base') mockedLiquidityUsd += 300000
 
   return {
     mockedSlippageBps,
@@ -341,6 +341,15 @@ export function getBlinkDisplayUrl(blinkUrl: string) {
   }
 }
 
+export function parseBlinkFromUrl(blinkUrl: string): BlinkDraft {
+  try {
+    const url = new URL(blinkUrl)
+    return parseBlinkFromSearchParams(url.searchParams)
+  } catch (_error) {
+    return parseBlinkFromSearchParams(new URLSearchParams())
+  }
+}
+
 export function parseBlinkFromSearchParams(searchParams: URLSearchParams): BlinkDraft {
   return {
     title: searchParams.get('title') || 'Shared trading Blink',
@@ -349,8 +358,8 @@ export function parseBlinkFromSearchParams(searchParams: URLSearchParams): Blink
     tokenIn: (searchParams.get('tokenIn') || 'USDC').toUpperCase(),
     tokenOut: (searchParams.get('tokenOut') || 'ETH').toUpperCase(),
     amount: Number(searchParams.get('amountUsd') || searchParams.get('amount') || 100),
-    protocol: searchParams.get('protocol') || 'Jupiter',
-    chain: searchParams.get('chain') || 'Solana',
+    protocol: searchParams.get('protocol') || 'Uniswap',
+    chain: searchParams.get('chain') || 'Base',
     referralTag: searchParams.get('sender') || '',
     tweetCopy: searchParams.get('tweetCopy') || '',
   }

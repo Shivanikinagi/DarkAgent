@@ -14,20 +14,26 @@
 
   html {
     scroll-behavior: smooth;
+    height: 100%;
   }
 
   body {
     margin: 0;
     min-height: 100vh;
+    height: 100%;
     background:
       radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 28%),
       radial-gradient(circle at left, rgba(0, 255, 136, 0.08), transparent 32%),
       var(--background);
     color: var(--foreground);
     font-family: Inter, sans-serif;
-    overflow-x: hidden;
+    overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    height: 100%;
   }
 
   a {
@@ -69,6 +75,10 @@
 
 @layer components {
   .input-shell {
-    @apply w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-vault-text outline-none transition placeholder:text-slate-500 focus:border-vault-green/40 focus:bg-white/[0.06];
+    @apply w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-vault-text outline-none transition placeholder:text-slate-500 focus:border-vault-green/40 focus:bg-white/[0.06];
+  }
+
+  .input-shell option {
+    @apply bg-[#0e131f] text-white;
   }
 }

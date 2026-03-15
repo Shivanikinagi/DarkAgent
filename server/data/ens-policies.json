@@ -1,17 +1,22 @@
 {
   "alice.eth": {
+    "ensName": "alice.eth",
     "owner": "alice.eth",
     "active": true,
     "persona": "balanced",
-    "maxTradeUsd": 800,
+    "maxTradeUsd": 500,
+    "maxSpendUsd": 500,
     "dailyLimitUsd": 2400,
     "dailySpentUsd": 0,
     "spendWindowStartedAt": "2026-03-15T00:00:00.000Z",
     "trustedProtocols": [
       "uniswap",
-      "jupiter",
       "aave",
-      "raydium",
+      "1inch"
+    ],
+    "allowedProtocols": [
+      "uniswap",
+      "aave",
       "1inch"
     ],
     "trustedProtocolsOnly": true,
@@ -21,7 +26,8 @@
       "SOL",
       "AAVE"
     ],
-    "maxSlippageBps": 125,
+    "maxSlippageBps": 10,
+    "slippageBps": 10,
     "minLiquidityUsd": 250000,
     "blockMemeCoins": true,
     "blockUnknownTokens": true,
@@ -40,19 +46,25 @@
     "notifyEmail": "alice@darkagent.demo",
     "bitgoPolicyId": "bitgo-alice-eth",
     "notes": "Balanced retail profile for social and AI Blink trading.",
-    "updatedAt": "2026-03-15T00:00:00.000Z"
+    "updatedAt": "2026-03-14T22:17:48.936Z"
   },
   "ops.eth": {
+    "ensName": "ops.eth",
     "owner": "ops.eth",
     "active": false,
-    "persona": "conservative",
-    "maxTradeUsd": 300,
+    "persona": "balanced",
+    "maxTradeUsd": 500,
+    "maxSpendUsd": 500,
     "dailyLimitUsd": 900,
     "dailySpentUsd": 0,
     "spendWindowStartedAt": "2026-03-15T00:00:00.000Z",
     "trustedProtocols": [
       "uniswap",
-      "jupiter",
+      "aave",
+      "1inch"
+    ],
+    "allowedProtocols": [
+      "uniswap",
       "aave",
       "1inch"
     ],
@@ -62,20 +74,21 @@
       "ETH",
       "SOL"
     ],
-    "maxSlippageBps": 75,
-    "minLiquidityUsd": 1000000,
+    "maxSlippageBps": 100,
+    "slippageBps": 100,
+    "minLiquidityUsd": 250000,
     "blockMemeCoins": true,
     "blockUnknownTokens": true,
-    "allowTopTokensOnly": true,
+    "allowTopTokensOnly": false,
     "allowLowLiquidityAssets": false,
     "autoDownsize": true,
     "sourceLimits": {
       "ai_bot": 300,
-      "influencer": 150,
-      "telegram": 120,
-      "friend": 100,
-      "copy_trader": 180,
-      "community": 100,
+      "influencer": 200,
+      "telegram": 150,
+      "friend": 150,
+      "copy_trader": 250,
+      "community": 150,
       "unknown": 0
     },
     "notifyEmail": "ops@darkagent.demo",

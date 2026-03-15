@@ -2,183 +2,183 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Copy, Sparkles, Twitter } from 'lucide-react'
 import { demoBlinks, buildMockTweet } from '../../data/demo'
+import { useDarkAgent } from '../../context/DarkAgentContext'
 import {
   ACTION_OPTIONS,
   buildBlinkUrl,
   buildTweetText,
   buildXIntentUrl,
   CHAIN_OPTIONS,
-  getBlinkDisplayUrl,
   resolveShareOrigin,
   SOURCE_OPTIONS,
 } from '../../lib/policyEngine'
-import { AppShell, GlowButton, Input, Label, PageHeader, SectionCard, Select, Textarea, StatusBadge } from '../../components/darkagent/Ui'
+import { AppShell, GlowButton, Input, Label, PageHeader, SectionCard, Select, Textarea, StatusBadge, ViewportFit } from '../../components/darkagent/Ui'
 import { TwitterShareDialog } from '../../components/darkagent/TwitterShareDialog'
+
+const DEFAULT_ENS = 'alice.eth'
 
 export default function CreateBlinkPage() {
   const navigate = useNavigate()
+  const { createShareLink, busy } = useDarkAgent()
   const [draft, setDraft] = useState(demoBlinks[2])
-  const [generated, setGenerated] = useState('')
+  const [generatedRawUrl, setGeneratedRawUrl] = useState('')
+  const [shareLink, setShareLink] = useState(null)
   const [shareOpen, setShareOpen] = useState(false)
   const [posted, setPosted] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [localError, setLocalError] = useState('')
 
   const shareOrigin = useMemo(() => resolveShareOrigin(), [])
-  const generatedUrl = useMemo(() => generated || buildBlinkUrl(shareOrigin, draft), [shareOrigin, draft, generated])
-  const displayUrl = useMemo(() => getBlinkDisplayUrl(generatedUrl), [generatedUrl])
+  const rawBlinkUrl = useMemo(() => generatedRawUrl || buildBlinkUrl(shareOrigin, draft), [shareOrigin, draft, generatedRawUrl])
+  const cleanShareUrl = useMemo(() => (shareLink ? `${shareOrigin}/analyze/${shareLink.id}` : rawBlinkUrl), [shareLink, shareOrigin, rawBlinkUrl])
   const tweetText = useMemo(() => buildTweetText(draft), [draft])
   const tweet = useMemo(() => buildMockTweet(draft), [draft])
-  const intentUrl = useMemo(() => buildXIntentUrl({ text: tweetText, url: generatedUrl }), [tweetText, generatedUrl])
+  const intentUrl = useMemo(() => buildXIntentUrl({ text: tweetText, url: cleanShareUrl }), [tweetText, cleanShareUrl])
+
+  function resetShareState() {
+    setShareLink(null)
+    setPosted(false)
+    setLocalError('')
+  }
 
   function useScenario(index) {
     setDraft(demoBlinks[index])
-    setGenerated('')
+    setGeneratedRawUrl('')
+    resetShareState()
+  }
+
+  async function ensureShareLink(nextDraft = draft) {
+    const nextRawUrl = buildBlinkUrl(shareOrigin, nextDraft)
+    setGeneratedRawUrl(nextRawUrl)
+    setLocalError('')
+
+    if (shareLink?.blinkUrl === nextRawUrl) {
+      return {
+        rawUrl: nextRawUrl,
+        share: shareLink,
+        shareUrl: `${shareOrigin}/analyze/${shareLink.id}`,
+      }
+    }
+
+    try {
+      const payload = await createShareLink({
+        blinkUrl: nextRawUrl,
+        ensName: DEFAULT_ENS,
+        meta: {
+          title: nextDraft.title,
+          source: nextDraft.source,
+          tokenOut: nextDraft.tokenOut,
+        },
+      })
+
+      setShareLink(payload.share)
+      return {
+        rawUrl: nextRawUrl,
+        share: payload.share,
+        shareUrl: `${shareOrigin}/analyze/${payload.share.id}`,
+      }
+    } catch (_error) {
+      setShareLink(null)
+      setLocalError('Using direct Blink link.')
+      return {
+        rawUrl: nextRawUrl,
+        share: null,
+        shareUrl: nextRawUrl,
+      }
+    }
+  }
+
+  async function generateBlink() {
+    const payload = await ensureShareLink()
     setPosted(false)
-    setCopied(false)
+    if (payload?.share?.id) {
+      navigate(`/analyze/${payload.share.id}`)
+    }
   }
 
-  function generateBlink() {
-    setGenerated(buildBlinkUrl(shareOrigin, draft))
-    setPosted(false)
-    setCopied(false)
+  async function openShareDialog() {
+    await ensureShareLink()
+    setShareOpen(true)
   }
 
-  async function copyBlink() {
-    await navigator.clipboard.writeText(generatedUrl)
-    setCopied(true)
-  }
-
-  function openXComposer() {
-    const popup = window.open(intentUrl, '_blank', 'noopener,noreferrer')
+  async function openXComposer() {
+    const payload = await ensureShareLink()
+    const nextIntentUrl = buildXIntentUrl({ text: tweetText, url: payload.shareUrl })
+    const popup = window.open(nextIntentUrl, '_blank', 'noopener,noreferrer')
     if (!popup) {
-      window.location.href = intentUrl
+      window.location.href = nextIntentUrl
       return
     }
     setPosted(true)
   }
 
+  async function openAnalyze() {
+    const payload = await ensureShareLink()
+    navigate(`/analyze/${payload.share.id}`)
+  }
+
   return (
     <AppShell>
-      <PageHeader
-        eyebrow="Blink creator"
-        title="Generate a shareable trading Blink."
-        description="Compose a Blink the way an AI bot, influencer, or social trader would share it on X, then route it into DarkAgent for policy-aware analysis."
-        actions={
-          <>
-            <StatusBadge status="downsized">Creator flow</StatusBadge>
-            <StatusBadge status="safe">Real X intent</StatusBadge>
-          </>
-        }
-      />
+      <ViewportFit>
+        <>
+          <PageHeader
+            eyebrow="Create Blink"
+            title="Create a Blink."
+            description="Generate, share, or analyze."
+            actions={<StatusBadge status="safe">Clean X share</StatusBadge>}
+          />
 
-      <div className="mt-8 flex flex-wrap gap-3">
-        <button onClick={() => useScenario(0)} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">Load SAFE demo</button>
-        <button onClick={() => useScenario(1)} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">Load BLOCKED demo</button>
-        <button onClick={() => useScenario(2)} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition hover:bg-white/10">Load DOWNSIZED demo</button>
-      </div>
-
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1.04fr_0.96fr]">
-        <SectionCard>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label>Blink title</Label>
-              <Input value={draft.title} onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} />
-            </div>
-            <div>
-              <Label>Source type</Label>
-              <Select value={draft.source} onChange={(event) => setDraft((current) => ({ ...current, source: event.target.value }))}>
-                {SOURCE_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
-              </Select>
-            </div>
-            <div>
-              <Label>Action type</Label>
-              <Select value={draft.action} onChange={(event) => setDraft((current) => ({ ...current, action: event.target.value }))}>
-                {ACTION_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
-              </Select>
-            </div>
-            <div>
-              <Label>Protocol</Label>
-              <Input value={draft.protocol} onChange={(event) => setDraft((current) => ({ ...current, protocol: event.target.value }))} />
-            </div>
-            <div>
-              <Label>Token in</Label>
-              <Input value={draft.tokenIn} onChange={(event) => setDraft((current) => ({ ...current, tokenIn: event.target.value.toUpperCase() }))} />
-            </div>
-            <div>
-              <Label>Token out</Label>
-              <Input value={draft.tokenOut} onChange={(event) => setDraft((current) => ({ ...current, tokenOut: event.target.value.toUpperCase() }))} />
-            </div>
-            <div>
-              <Label>Amount</Label>
-              <Input value={draft.amount} onChange={(event) => setDraft((current) => ({ ...current, amount: Number(event.target.value || 0) }))} />
-            </div>
-            <div>
-              <Label>Chain</Label>
-              <Select value={draft.chain} onChange={(event) => setDraft((current) => ({ ...current, chain: event.target.value }))}>
-                {CHAIN_OPTIONS.map((chain) => <option key={chain} value={chain}>{chain}</option>)}
-              </Select>
-            </div>
-            <div>
-              <Label>Referral or influencer tag</Label>
-              <Input value={draft.referralTag || ''} onChange={(event) => setDraft((current) => ({ ...current, referralTag: event.target.value }))} />
-            </div>
-            <div>
-              <Label>Tweet copy</Label>
-              <Textarea rows={4} value={draft.tweetCopy || ''} onChange={(event) => setDraft((current) => ({ ...current, tweetCopy: event.target.value }))} />
-            </div>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button onClick={() => useScenario(0)} className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm text-white transition hover:bg-white/[0.08]">Safe demo</button>
+            <button onClick={() => useScenario(1)} className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm text-white transition hover:bg-white/[0.08]">Blocked demo</button>
+            <button onClick={() => useScenario(2)} className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm text-white transition hover:bg-white/[0.08]">Downsized demo</button>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            <GlowButton onClick={generateBlink} className="bg-vault-green text-black hover:bg-vault-green/90">
-              <Sparkles className="h-4 w-4" /> Generate Blink
-            </GlowButton>
-            <GlowButton onClick={copyBlink} className="border border-white/10 bg-white/5 text-white hover:bg-white/10">
-              <Copy className="h-4 w-4" /> {copied ? 'Copied' : 'Copy Blink URL'}
-            </GlowButton>
-            <GlowButton onClick={() => setShareOpen(true)} className="bg-[#1d9bf0] text-white hover:bg-[#1a8ad4]">
-              <Twitter className="h-4 w-4" /> Share to X
-            </GlowButton>
-            <GlowButton as="button" onClick={() => navigate(`/analyze?${new URL(generatedUrl).searchParams.toString()}`)} className="border border-sky-400/20 bg-sky-400/10 text-sky-200 hover:bg-sky-400/15">
-              Analyze this Blink
-            </GlowButton>
-          </div>
-        </SectionCard>
-
-        <div className="space-y-6">
-          <SectionCard>
-            <div className="text-sm uppercase tracking-[0.24em] text-vault-slate">Generated Blink object</div>
-            <pre className="mt-4 overflow-x-auto rounded-2xl border border-white/10 bg-[#0b1016] p-4 text-xs leading-6 text-slate-300">
-{JSON.stringify(draft, null, 2)}
-            </pre>
-          </SectionCard>
-
-          <SectionCard>
-            <div className="text-sm uppercase tracking-[0.24em] text-vault-slate">Shareable Blink URL</div>
-            <div className="mt-4 rounded-2xl border border-white/10 bg-[#0b1016] p-4">
-              <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Display URL</div>
-              <div className="mt-2 text-sm font-medium text-white">{displayUrl}</div>
-              <div className="mt-3 break-all text-xs leading-6 text-slate-400">{generatedUrl}</div>
+          <SectionCard className="mt-5 mx-auto w-full max-w-5xl overflow-hidden">
+            <div className="grid gap-3 md:grid-cols-2">
+              <Field label="Blink title"><Input value={draft.title} onChange={(event) => { setDraft((current) => ({ ...current, title: event.target.value })); resetShareState() }} /></Field>
+              <Field label="Source type"><Select value={draft.source} onChange={(event) => { setDraft((current) => ({ ...current, source: event.target.value })); resetShareState() }}>{SOURCE_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}</Select></Field>
+              <Field label="Action type"><Select value={draft.action} onChange={(event) => { setDraft((current) => ({ ...current, action: event.target.value })); resetShareState() }}>{ACTION_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}</Select></Field>
+              <Field label="Protocol"><Input value={draft.protocol} onChange={(event) => { setDraft((current) => ({ ...current, protocol: event.target.value })); resetShareState() }} /></Field>
+              <Field label="Token in"><Input value={draft.tokenIn} onChange={(event) => { setDraft((current) => ({ ...current, tokenIn: event.target.value.toUpperCase() })); resetShareState() }} /></Field>
+              <Field label="Token out"><Input value={draft.tokenOut} onChange={(event) => { setDraft((current) => ({ ...current, tokenOut: event.target.value.toUpperCase() })); resetShareState() }} /></Field>
+              <Field label="Amount"><Input value={draft.amount} onChange={(event) => { setDraft((current) => ({ ...current, amount: Number(event.target.value || 0) })); resetShareState() }} /></Field>
+              <Field label="Chain"><Select value={draft.chain} onChange={(event) => { setDraft((current) => ({ ...current, chain: event.target.value })); resetShareState() }}>{CHAIN_OPTIONS.map((chain) => <option key={chain} value={chain}>{chain}</option>)}</Select></Field>
+              <Field label="Source tag"><Input value={draft.referralTag || ''} onChange={(event) => { setDraft((current) => ({ ...current, referralTag: event.target.value })); resetShareState() }} /></Field>
+              <Field label="Tweet copy"><Textarea rows={4} value={draft.tweetCopy || ''} onChange={(event) => { setDraft((current) => ({ ...current, tweetCopy: event.target.value })); resetShareState() }} /></Field>
             </div>
-          </SectionCard>
 
-          <SectionCard>
-            <div className="text-sm uppercase tracking-[0.24em] text-vault-slate">X composer text</div>
-            <div className="mt-4 whitespace-pre-wrap break-words rounded-2xl border border-white/10 bg-[#0b1016] p-4 text-sm leading-6 text-slate-200">{tweetText}</div>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <GlowButton onClick={generateBlink} className="bg-vault-green text-black hover:bg-vault-green/90" disabled={busy}><Sparkles className="h-4 w-4" /> {busy ? 'Generating...' : 'Generate Blink'}</GlowButton>
+              <GlowButton onClick={openShareDialog} className="bg-[#1d9bf0] text-white hover:bg-[#1a8ad4]" disabled={busy}><Twitter className="h-4 w-4" /> Share to X</GlowButton>
+              <GlowButton as="button" onClick={openAnalyze} className="border border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.08]" disabled={busy}>Analyze Blink</GlowButton>
+            </div>
+            {localError && <div className="mt-3 text-xs text-amber-200">{localError}</div>}
           </SectionCard>
-        </div>
-      </div>
+        </>
+      </ViewportFit>
 
       <TwitterShareDialog
         open={shareOpen}
         onOpenChange={setShareOpen}
         tweet={tweet}
-        blinkUrl={generatedUrl}
-        displayUrl={displayUrl}
+        blinkUrl={cleanShareUrl}
+        displayUrl={cleanShareUrl}
         posted={posted}
         intentUrl={intentUrl}
-        onCopy={copyBlink}
+        onCopy={async () => {
+          await navigator.clipboard.writeText(cleanShareUrl)
+        }}
         onPost={openXComposer}
       />
     </AppShell>
+  )
+}
+
+function Field({ label, children }) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      {children}
+    </div>
   )
 }

@@ -14,6 +14,7 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/create" element={<CreateBlinkPage />} />
         <Route path="/analyze" element={<AnalyzeBlinkPage />} />
+        <Route path="/analyze/:shareId" element={<AnalyzeBlinkPage />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

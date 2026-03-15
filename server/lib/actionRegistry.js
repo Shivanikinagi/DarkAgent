@@ -3,9 +3,9 @@ const ACTIONS = {
     id: "uniswap-swap",
     title: "Protected Uniswap Swap",
     description:
-      "AI-generated Blink routed through DarkAgent, checked against ENS rules, and executed through BitGo with a fresh stealth address.",
+      "Base-native Blink routed through DarkAgent, checked against ENS rules, and executed through BitGo with a fresh stealth address.",
     protocol: "uniswap",
-    sourceChain: "solana",
+    sourceChain: "base",
     settlementChain: "base",
     label: "Execute Swap",
     iconPath: "/api/assets/darkagent.svg",
@@ -19,21 +19,21 @@ const ACTIONS = {
       return Number(payload.amountUsd ?? this.defaultAmountUsd);
     },
   },
-  "jupiter-rotate": {
-    id: "jupiter-rotate",
-    title: "Protected Jupiter Rotation",
+  "oneinch-swap": {
+    id: "oneinch-swap",
+    title: "Protected 1inch Swap",
     description:
-      "Cross-ecosystem Blink intent from Solana routed through the DarkAgent policy gate before any execution is allowed.",
-    protocol: "jupiter",
-    sourceChain: "solana",
-    settlementChain: "solana",
-    label: "Rotate Position",
+      "Base aggregation routes are only accepted when the ENS rulebook allows the protocol, trade size, and slippage profile.",
+    protocol: "1inch",
+    sourceChain: "base",
+    settlementChain: "base",
+    label: "Route via 1inch",
     iconPath: "/api/assets/darkagent.svg",
     defaultAmountUsd: 250,
     defaultSlippageBps: 75,
     defaultTokens: {
       tokenIn: "USDC",
-      tokenOut: "SOL",
+      tokenOut: "ETH",
     },
     estimateUsdValue(payload) {
       return Number(payload.amountUsd ?? this.defaultAmountUsd);
@@ -45,7 +45,7 @@ const ACTIONS = {
     description:
       "Deposits are only accepted when the ENS rulebook allows the protocol, spend size, and slippage profile.",
     protocol: "aave",
-    sourceChain: "solana",
+    sourceChain: "base",
     settlementChain: "base",
     label: "Supply to Aave",
     iconPath: "/api/assets/darkagent.svg",
