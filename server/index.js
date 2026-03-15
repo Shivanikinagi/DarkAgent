@@ -27,19 +27,14 @@ const {
 const SAMPLE_BLINKS = [
   {
     id: "influencer-meme",
-    label: "Risky influencer Blink",
-    url: "https://x.com/moonalpha/status/20991?protocol=uniswap&chain=base&tokenIn=USDC&tokenOut=PEPE&amountUsd=1000&slippageBps=220&liquidityUsd=65000&source=influencer&sender=%40moonalpha",
+    label: "Blocked (Blink wants to swap $1,000)",
+    url: "https://x.com/moonalpha/status/20991?protocol=uniswap&chain=base&tokenIn=USDC&tokenOut=ETH&amountUsd=1000&slippageBps=220&liquidityUsd=65000&source=twitter&sender=%40moonalpha",
   },
   {
     id: "ai-bot-eth",
     label: "AI bot Blink",
     url: "https://ai.darkagent.trade/recommendation?protocol=uniswap&chain=base&tokenIn=USDC&tokenOut=ETH&amountUsd=800&slippageBps=80&liquidityUsd=2200000&source=twitter&sender=DeepTrendBot",
-  },
-  {
-    id: "safe-friend",
-    label: "Safe friend Blink",
-    url: "https://friend.trade/blink?protocol=uniswap&chain=base&tokenIn=USDC&tokenOut=ETH&amountUsd=120&slippageBps=40&liquidityUsd=5300000&source=friend&sender=Riya",
-  },
+  }
 ];
 
 function writeJson(response, statusCode, payload) {

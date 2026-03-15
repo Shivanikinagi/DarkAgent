@@ -3,14 +3,14 @@
     "version": "1.0.0",
     "description": "DarkAgent â€” Verifiable AI Agent Infrastructure for ETHMumbai 2026",
     "scripts": {
-    "compile": "npx hardhat compile",
-    "test": "npx hardhat test",
-    "deploy": "npx hardhat run scripts/deploy.js --network base_sepolia",
-    "deploy:local": "npx hardhat run scripts/deploy-local.js --network localhost",
-    "verify": "npx hardhat verify --network base_sepolia",
-    "postinstall": "node scripts/fix-aes-js.js",
-    "node": "npx hardhat node",
-    "blink": "node server/index.js",
+        "compile": "npx hardhat compile",
+        "test": "npx hardhat test",
+        "deploy": "npx hardhat run scripts/deploy.js --network base_sepolia",
+        "deploy:local": "npx hardhat run scripts/deploy-local.js --network localhost",
+        "verify": "npx hardhat verify --network base_sepolia",
+        "postinstall": "node scripts/fix-aes-js.js",
+        "node": "npx hardhat node",
+        "blink": "node server/index.js",
         "blink:server": "node server/index.js",
         "blink:test": "node test/BlinkProxyServer.test.js",
         "demo:blink": "node scripts/start-blink-demo.js"
@@ -23,7 +23,7 @@
         "@openzeppelin/contracts": "^5.0.0",
         "aes-js": "^4.0.0-beta.5",
         "bitgo": "^50.27.0",
-        "dotenv": "^16.3.1",
+        "dotenv": "^16.6.1",
         "ethers": "^6.9.0"
     }
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Copy, ExternalLink, Sparkles, Twitter } from 'lucide-react'
-import { demoBlinks, buildMockTweet } from '../../data/demo'
+import { buildSharePreview } from '../../data/demo'
 import { useDarkAgent } from '../../context/DarkAgentContext'
 import {
   ACTION_OPTIONS,
@@ -13,25 +13,44 @@ import {
   SOURCE_OPTIONS,
   titleizeSource,
 } from '../../lib/policyEngine'
-import { AppShell, GlowButton, Input, Label, MetricCard, PageHeader, SectionCard, StatusBadge, Textarea, ViewportFit, WalletSummaryCard } from '../../components/darkagent/Ui'
+import { AppShell, GlowButton, Input, Label, MetricCard, PageHeader, SectionCard, StatusBadge, Textarea, ViewportFit } from '../../components/darkagent/Ui'
 import { TwitterShareDialog } from '../../components/darkagent/TwitterShareDialog'
 import { DEFAULT_ENS_PROFILE, formatUsd } from '../../lib/product'
+import { feedEntryToDraft } from '../../lib/liveFeed'
+
+const EMPTY_DRAFT_TITLE = 'Incoming Twitter Blink'
 
 export default function CreateBlinkPage() {
   const navigate = useNavigate()
-  const { createShareLink, busy } = useDarkAgent()
-  const [draft, setDraft] = useState(demoBlinks[2])
+  const { createShareLink, busy, state } = useDarkAgent()
+  const livePresets = useMemo(
+    () => (state?.feed || []).map((entry) => ({ label: entry.label, draft: feedEntryToDraft(entry) })),
+    [state?.feed]
+  )
+  const [draft, setDraft] = useState(() => livePresets[0]?.draft || {
+    title: EMPTY_DRAFT_TITLE,
+    source: 'twitter',
+    action: 'swap',
+    tokenIn: 'USDC',
+    tokenOut: 'ETH',
+    amount: 100,
+    protocol: 'Uniswap',
+    chain: 'Base',
+    referralTag: '@signal_bot',
+    tweetCopy: 'Fresh Blink to review.',
+  })
   const [generatedRawUrl, setGeneratedRawUrl] = useState('')
   const [shareLink, setShareLink] = useState(null)
   const [shareOpen, setShareOpen] = useState(false)
   const [posted, setPosted] = useState(false)
   const [localError, setLocalError] = useState('')
+  const activeDraft = draft?.title === EMPTY_DRAFT_TITLE && livePresets.length ? livePresets[0].draft : draft
 
   const shareOrigin = useMemo(() => resolveShareOrigin(), [])
-  const rawBlinkUrl = useMemo(() => generatedRawUrl || buildBlinkUrl(shareOrigin, draft), [shareOrigin, draft, generatedRawUrl])
+  const rawBlinkUrl = useMemo(() => generatedRawUrl || buildBlinkUrl(shareOrigin, activeDraft), [shareOrigin, activeDraft, generatedRawUrl])
   const cleanShareUrl = useMemo(() => (shareLink ? `${shareOrigin}/analyze/${shareLink.id}` : rawBlinkUrl), [shareLink, shareOrigin, rawBlinkUrl])
-  const tweetText = useMemo(() => buildTweetText(draft), [draft])
-  const tweet = useMemo(() => buildMockTweet(draft), [draft])
+  const tweetText = useMemo(() => buildTweetText(activeDraft), [activeDraft])
+  const tweet = useMemo(() => buildSharePreview(activeDraft), [activeDraft])
   const intentUrl = useMemo(() => buildXIntentUrl({ text: tweetText, url: cleanShareUrl }), [tweetText, cleanShareUrl])
 
   function resetShareState() {
@@ -41,12 +60,12 @@ export default function CreateBlinkPage() {
   }
 
   function applyScenario(index) {
-    setDraft(demoBlinks[index])
+    setDraft(livePresets[index].draft)
     setGeneratedRawUrl('')
     resetShareState()
   }
 
-  async function ensureShareLink(nextDraft = draft) {
+  async function ensureShareLink(nextDraft = activeDraft) {
     const nextRawUrl = buildBlinkUrl(shareOrigin, nextDraft)
     setGeneratedRawUrl(nextRawUrl)
     setLocalError('')
@@ -118,62 +137,62 @@ export default function CreateBlinkPage() {
       <ViewportFit>
         <>
           <PageHeader
-            eyebrow="Agent inbox"
-            title="Create one Blink and send it to review."
-            description="Pick a scenario or adjust the payload."
+            eyebrow="Blink lab"
+            title="Open a live Blink, edit it, and send it through DarkAgent."
+            description="These presets come from the running backend feed, then create a real review link through the local server."
             actions={<StatusBadge status="safe">Share-ready</StatusBadge>}
           />
 
           <div className="mt-5 flex flex-wrap gap-3">
-            <ScenarioButton active={draft.title === demoBlinks[0].title} onClick={() => applyScenario(0)} label="Safe" />
-            <ScenarioButton active={draft.title === demoBlinks[1].title} onClick={() => applyScenario(1)} label="Blocked" />
-            <ScenarioButton active={draft.title === demoBlinks[2].title} onClick={() => applyScenario(2)} label="Downsize" />
+            {livePresets.map((preset, index) => (
+              <ScenarioButton key={preset.label} active={activeDraft.title === preset.draft.title} onClick={() => applyScenario(index)} label={preset.label} />
+            ))}
           </div>
 
           <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_380px]">
             <SectionCard className="p-5">
               <div className="grid gap-3 md:grid-cols-2">
                 <Field label="Title">
-                  <Input value={draft.title} onChange={(event) => { setDraft((current) => ({ ...current, title: event.target.value })); resetShareState() }} />
+                  <Input value={activeDraft.title} onChange={(event) => { setDraft((current) => ({ ...(current?.title === EMPTY_DRAFT_TITLE ? activeDraft : current), title: event.target.value })); resetShareState() }} />
                 </Field>
                 <Field label="Source">
-                  <select value={draft.source} onChange={(event) => { setDraft((current) => ({ ...current, source: event.target.value })); resetShareState() }} className="input-shell">
+                  <select value={activeDraft.source} onChange={(event) => { setDraft((current) => ({ ...(current?.title === EMPTY_DRAFT_TITLE ? activeDraft : current), source: event.target.value })); resetShareState() }} className="input-shell">
                     {SOURCE_OPTIONS.map((option) => <option key={option} value={option}>{titleizeSource(option)}</option>)}
                   </select>
                 </Field>
                 <Field label="Action">
-                  <select value={draft.action} onChange={(event) => { setDraft((current) => ({ ...current, action: event.target.value })); resetShareState() }} className="input-shell">
+                  <select value={activeDraft.action} onChange={(event) => { setDraft((current) => ({ ...(current?.title === EMPTY_DRAFT_TITLE ? activeDraft : current), action: event.target.value })); resetShareState() }} className="input-shell">
                     {ACTION_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
                   </select>
                 </Field>
                 <Field label="Protocol">
-                  <Input value={draft.protocol} onChange={(event) => { setDraft((current) => ({ ...current, protocol: event.target.value })); resetShareState() }} />
+                  <Input value={activeDraft.protocol} onChange={(event) => { setDraft((current) => ({ ...(current?.title === EMPTY_DRAFT_TITLE ? activeDraft : current), protocol: event.target.value })); resetShareState() }} />
                 </Field>
                 <Field label="Token in">
-                  <Input value={draft.tokenIn} onChange={(event) => { setDraft((current) => ({ ...current, tokenIn: event.target.value.toUpperCase() })); resetShareState() }} />
+                  <Input value={activeDraft.tokenIn} onChange={(event) => { setDraft((current) => ({ ...(current?.title === EMPTY_DRAFT_TITLE ? activeDraft : current), tokenIn: event.target.value.toUpperCase() })); resetShareState() }} />
                 </Field>
                 <Field label="Token out">
-                  <Input value={draft.tokenOut} onChange={(event) => { setDraft((current) => ({ ...current, tokenOut: event.target.value.toUpperCase() })); resetShareState() }} />
+                  <Input value={activeDraft.tokenOut} onChange={(event) => { setDraft((current) => ({ ...(current?.title === EMPTY_DRAFT_TITLE ? activeDraft : current), tokenOut: event.target.value.toUpperCase() })); resetShareState() }} />
                 </Field>
                 <Field label="Amount">
-                  <Input value={draft.amount} onChange={(event) => { setDraft((current) => ({ ...current, amount: Number(event.target.value || 0) })); resetShareState() }} />
+                  <Input value={activeDraft.amount} onChange={(event) => { setDraft((current) => ({ ...(current?.title === EMPTY_DRAFT_TITLE ? activeDraft : current), amount: Number(event.target.value || 0) })); resetShareState() }} />
                 </Field>
                 <Field label="Chain">
-                  <select value={draft.chain} onChange={(event) => { setDraft((current) => ({ ...current, chain: event.target.value })); resetShareState() }} className="input-shell">
+                  <select value={activeDraft.chain} onChange={(event) => { setDraft((current) => ({ ...(current?.title === EMPTY_DRAFT_TITLE ? activeDraft : current), chain: event.target.value })); resetShareState() }} className="input-shell">
                     {CHAIN_OPTIONS.map((chain) => <option key={chain} value={chain}>{chain}</option>)}
                   </select>
                 </Field>
                 <Field label="Sender">
-                  <Input value={draft.referralTag || ''} onChange={(event) => { setDraft((current) => ({ ...current, referralTag: event.target.value })); resetShareState() }} />
+                  <Input value={activeDraft.referralTag || ''} onChange={(event) => { setDraft((current) => ({ ...(current?.title === EMPTY_DRAFT_TITLE ? activeDraft : current), referralTag: event.target.value })); resetShareState() }} />
                 </Field>
                 <Field label="Copy">
-                  <Textarea rows={3} value={draft.tweetCopy || ''} onChange={(event) => { setDraft((current) => ({ ...current, tweetCopy: event.target.value })); resetShareState() }} />
+                  <Textarea rows={3} value={activeDraft.tweetCopy || ''} onChange={(event) => { setDraft((current) => ({ ...(current?.title === EMPTY_DRAFT_TITLE ? activeDraft : current), tweetCopy: event.target.value })); resetShareState() }} />
                 </Field>
               </div>
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <GlowButton onClick={generateBlink} className="bg-vault-green text-black hover:bg-vault-green/90" disabled={busy}>
-                  <Sparkles className="h-4 w-4" /> {busy ? 'Sending...' : 'Send to review'}
+                  <Sparkles className="h-4 w-4" /> {busy ? 'Sending...' : 'Send through DarkAgent'}
                 </GlowButton>
                 <GlowButton onClick={openShareDialog} className="bg-[#1d9bf0] text-white hover:bg-[#1a8ad4]" disabled={busy}>
                   <Twitter className="h-4 w-4" /> Share to X
@@ -187,14 +206,14 @@ export default function CreateBlinkPage() {
               <SectionCard>
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">Request</div>
-                    <div className="mt-2 text-lg font-semibold text-white">{draft.title}</div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">Blink preview</div>
+                    <div className="mt-2 text-lg font-semibold text-white">{activeDraft.title}</div>
                   </div>
                   <StatusBadge status="downsized">Queued</StatusBadge>
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <MetricCard label="Source" value={titleizeSource(draft.source)} detail={draft.referralTag || '@agent'} />
-                  <MetricCard label="Amount" value={formatUsd(draft.amount)} detail={`${draft.tokenIn} -> ${draft.tokenOut}`} />
+                  <MetricCard label="Source" value={titleizeSource(activeDraft.source)} detail={activeDraft.referralTag || '@agent'} />
+                  <MetricCard label="Amount" value={formatUsd(activeDraft.amount)} detail={`${activeDraft.tokenIn} -> ${activeDraft.tokenOut}`} />
                 </div>
 
                 <div className="mt-4 rounded-2xl border border-white/8 bg-black/20 p-4">

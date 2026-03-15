@@ -23,12 +23,20 @@ function stableSerialize(value) {
 }
 
 class ProofService {
-  constructor({ store, eventHub, signerPrivateKey = process.env.DARKAGENT_PROOF_SIGNER_PRIVATE_KEY }) {
+  constructor({
+    store,
+    eventHub,
+    signerPrivateKey =
+      process.env.DARKAGENT_PROOF_SIGNER_PRIVATE_KEY || process.env.PRIVATE_KEY,
+  }) {
     this.store = store;
     this.eventHub = eventHub;
-    this.signer = signerPrivateKey
-      ? new Wallet(signerPrivateKey)
-      : Wallet.createRandom();
+    if (!signerPrivateKey) {
+      throw new Error(
+        "DARKAGENT_PROOF_SIGNER_PRIVATE_KEY or PRIVATE_KEY must be set for live proof signing."
+      );
+    }
+    this.signer = new Wallet(signerPrivateKey);
   }
 
   async createProof({

@@ -18,7 +18,7 @@ const PERSONA_PRESETS = {
   balanced: {
     persona: "balanced",
     maxTradeUsd: 800,
-    autoDownsize: true,
+    autoDownsize: false, // Changed for demo to BLOCK instead of downsize
     blockMemeCoins: true,
     blockUnknownTokens: true,
     allowTopTokensOnly: false,
@@ -80,6 +80,7 @@ function normalizePolicyForTrading(policy = {}) {
     sourceLimits: {
       ...preset.sourceLimits,
       ...(policy.sourceLimits || {}),
+      twitter: policy.twitter !== undefined ? policy.twitter : (policy.sourceLimits?.twitter !== undefined ? policy.sourceLimits?.twitter : preset.sourceLimits.twitter),
     },
   };
 }

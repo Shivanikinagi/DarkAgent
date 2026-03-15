@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { DarkAgentProvider } from './context/DarkAgentContext'
+import ExtensionDemoPage from './pages/darkagent/ExtensionDemoPage'
 import LandingPage from './pages/darkagent/LandingPage'
 import DashboardPage from './pages/darkagent/DashboardPage'
 import CreateBlinkPage from './pages/darkagent/CreateBlinkPage'
@@ -10,7 +11,7 @@ export default function App() {
   return (
     <DarkAgentProvider>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<ExtensionDemoPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/create" element={<CreateBlinkPage />} />
         <Route path="/analyze" element={<AnalyzeBlinkPage />} />

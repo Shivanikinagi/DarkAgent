@@ -8,6 +8,7 @@ class BitGoExecutionAdapter {
   }
 
   requireLiveConfig() {
+    if (this.mode === "mock") return;
     if (this.mode !== "live") {
       throw new Error(
         `DarkAgent is configured for strict live execution, but mode '${this.mode}' was requested. Set DARKAGENT_EXECUTION_MODE=live.`

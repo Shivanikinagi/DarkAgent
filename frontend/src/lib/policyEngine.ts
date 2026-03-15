@@ -1,4 +1,4 @@
-export type SourceType = 'twitter'
+export type SourceType = 'twitter' | 'influencer' | 'friend' | 'telegram' | 'community' | 'copy_trader' | 'unknown' | 'ai_bot'
 
 export type ActionType = 'swap' | 'buy' | 'bridge'
 export type Verdict = 'safe' | 'risky' | 'blocked' | 'downsized'
@@ -14,6 +14,8 @@ export interface BlinkDraft {
   chain: string
   referralTag?: string
   tweetCopy?: string
+  slippageBps?: number
+  liquidityUsd?: number
 }
 
 export interface TradingPolicy {
@@ -55,7 +57,7 @@ export const TOKEN_CATEGORIES: Record<string, string> = {
 export const TRUSTED_PROTOCOLS = ['Uniswap', '1inch', 'Aave']
 export const CHAIN_OPTIONS = ['Base']
 export const ACTION_OPTIONS: ActionType[] = ['swap', 'buy', 'bridge']
-export const SOURCE_OPTIONS: SourceType[] = ['twitter']
+export const SOURCE_OPTIONS: SourceType[] = ['twitter', 'influencer', 'friend', 'telegram', 'community', 'copy_trader', 'ai_bot', 'unknown']
 
 export const PERSONA_PRESETS: Record<TradingPolicy['persona'], TradingPolicy> = {
   conservative: {
@@ -269,6 +271,8 @@ export function buildBlinkUrl(baseOrigin: string, blink: BlinkDraft) {
   url.searchParams.set('chain', blink.chain)
   if (blink.referralTag) url.searchParams.set('sender', blink.referralTag)
   if (blink.tweetCopy) url.searchParams.set('tweetCopy', blink.tweetCopy)
+  if (blink.slippageBps !== undefined) url.searchParams.set('slippageBps', String(blink.slippageBps))
+  if (blink.liquidityUsd !== undefined) url.searchParams.set('liquidityUsd', String(blink.liquidityUsd))
   return url.toString()
 }
 
@@ -336,5 +340,7 @@ export function parseBlinkFromSearchParams(searchParams: URLSearchParams): Blink
     chain: searchParams.get('chain') || 'Base',
     referralTag: searchParams.get('sender') || '',
     tweetCopy: searchParams.get('tweetCopy') || '',
+    slippageBps: Number(searchParams.get('slippageBps') || 0) || undefined,
+    liquidityUsd: Number(searchParams.get('liquidityUsd') || 0) || undefined,
   }
 }

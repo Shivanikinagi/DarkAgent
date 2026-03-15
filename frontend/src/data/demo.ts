@@ -2,55 +2,47 @@ import { buildTweetText, type BlinkDraft } from '../lib/policyEngine'
 
 export const demoBlinks: BlinkDraft[] = [
   {
-    title: 'AI ETH rebalance',
+    title: 'Safe (Blink wants to swap $25)',
     source: 'twitter',
     action: 'swap',
     tokenIn: 'USDC',
     tokenOut: 'ETH',
-    amount: 100,
+    amount: 25,
     protocol: 'Uniswap',
     chain: 'Base',
     referralTag: '@DeepTrendBot',
-    tweetCopy: 'Base rotation alert: moving into ETH strength.',
+    tweetCopy: 'Low-size Base rotation alert. DarkAgent should let this pass.',
+    slippageBps: 8,
+    liquidityUsd: 3200000,
   },
   {
-    title: 'Influencer meme call',
+    title: 'Blocked (Blink wants to swap $1,000)',
     source: 'twitter',
-    action: 'buy',
+    action: 'swap',
     tokenIn: 'USDC',
-    tokenOut: 'MEME',
+    tokenOut: 'ETH',
     amount: 1000,
     protocol: 'Uniswap',
     chain: 'Base',
     referralTag: '@MoonAlphaX',
-    tweetCopy: 'Base meme call is live. Size in if you dare.',
-  },
-  {
-    title: 'AI size too large on Base',
-    source: 'twitter',
-    action: 'swap',
-    tokenIn: 'USDC',
-    tokenOut: 'ETH',
-    amount: 800,
-    protocol: 'Uniswap',
-    chain: 'Base',
-    referralTag: '@DeepTrendBot',
-    tweetCopy: 'Momentum confirmed on Base, scaling the position.',
-  },
+    tweetCopy: 'Whale-sized Twitter Blink. DarkAgent should stop this before the wallet sees it.',
+    slippageBps: 8,
+    liquidityUsd: 2800000,
+  }
 ]
 
 export const featureHighlights = [
   {
     title: 'Source-aware firewall',
-    body: 'DarkAgent scores every Blink differently depending on whether it came from Twitter.',
+    body: 'DarkAgent catches Twitter Blinks before they reach the wallet and checks them against your saved rules.',
   },
   {
-    title: 'Auto-downsize oversized trades',
-    body: 'When a Blink is acceptable in principle but too large for the user, DarkAgent rewrites it to a safe size instead of forcing a hard reject.',
+    title: 'Hard block on overspend',
+    body: 'If a Twitter Blink asks for more than your ENS-linked limit, DarkAgent turns the review red and locks execution.',
   },
   {
     title: 'Explain every decision',
-    body: 'Safe, Risky, Blocked, and Downsized verdicts all come with human-readable reasons so users know exactly what happened.',
+    body: 'Safe and blocked verdicts come with plain-language reasons so the user knows exactly why the server allowed or rejected the Blink.',
   },
 ]
 
@@ -60,7 +52,7 @@ export const productPrinciples = [
   'Framed as a real operator workflow with wallet approval, settlement state, and audit trails.',
 ]
 
-export function buildMockTweet(blink: BlinkDraft) {
+export function buildSharePreview(blink: BlinkDraft) {
   return {
     avatar: blink.source === 'twitter' ? 'DA' : 'MX',
     handle: blink.referralTag || '@darkagent_demo',

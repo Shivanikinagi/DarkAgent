@@ -76,7 +76,14 @@ function stringParam(params, keys, fallback) {
   for (const key of keys) {
     const value = params.get(key);
     if (value) {
-      return value;
+      const normalized = String(value).trim();
+      if (
+        normalized &&
+        normalized.toLowerCase() !== "undefined" &&
+        normalized.toLowerCase() !== "null"
+      ) {
+        return normalized;
+      }
     }
   }
   return fallback;

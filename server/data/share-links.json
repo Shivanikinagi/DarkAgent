@@ -185,5 +185,71 @@
       "tokenOut": "ETH"
     },
     "createdAt": "2026-03-15T03:12:22.160Z"
+  },
+  "6ae66ec44a": {
+    "id": "6ae66ec44a",
+    "blinkUrl": "http://localhost:5176/analyze?title=AI+size+too+large+on+Base&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&protocol=Uniswap&chain=Base&sender=%40DeepTrendBot&tweetCopy=Momentum+confirmed+on+Base%2C+scaling+the+position.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "AI size too large on Base",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T04:54:25.237Z"
+  },
+  "c5616d7c4f": {
+    "id": "c5616d7c4f",
+    "blinkUrl": "http://localhost:5176/analyze?title=AI+size+too+large+on+Base&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&protocol=Uniswap&chain=Base&sender=%40DeepTrendBot&tweetCopy=Momentum+confirmed+on+Base%2C+scaling+the+position.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "AI size too large on Base",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T05:30:47.824Z"
+  },
+  "9bb8688acd": {
+    "id": "9bb8688acd",
+    "blinkUrl": "http://localhost:5176/analyze?title=AI+size+too+large+on+Base&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&protocol=Uniswap&chain=Base&sender=%40DeepTrendBot&tweetCopy=Momentum+confirmed+on+Base%2C+scaling+the+position.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "AI size too large on Base",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T05:32:21.485Z"
+  },
+  "2e46dd7f85": {
+    "id": "2e46dd7f85",
+    "blinkUrl": "http://localhost:5176/analyze?title=Blocked+%28Blink+wants+to+swap+%241%2C000%29&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=1000&protocol=Uniswap&chain=Base&sender=%40MoonAlphaX&tweetCopy=Whale-sized+Twitter+Blink.+DarkAgent+should+stop+this+before+the+wallet+sees+it.&slippageBps=8&liquidityUsd=2800000",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "Blocked (Blink wants to swap $1,000)",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T06:17:38.605Z"
+  },
+  "2d3e46e2bd": {
+    "id": "2d3e46e2bd",
+    "blinkUrl": "http://localhost:5176/analyze?title=Incoming+Twitter+Blink&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=100&protocol=Uniswap&chain=Base&sender=%40signal_bot&tweetCopy=Fresh+Blink+to+review.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "Incoming Twitter Blink",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T06:45:50.844Z"
+  },
+  "075db551cb": {
+    "id": "075db551cb",
+    "blinkUrl": "http://localhost:5176/analyze?title=Incoming+Twitter+Blink&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=100&protocol=Uniswap&chain=Base&sender=%40signal_bot&tweetCopy=Fresh+Blink+to+review.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "Incoming Twitter Blink",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T06:56:05.975Z"
   }
 }

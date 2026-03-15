@@ -63,8 +63,9 @@ export default function DashboardPage() {
   const summary = useMemo(
     () => [
       `Max trade size: $${form.maxTradeUsd}`,
-        `Twitter limit: $${form.twitter}`,
+      `Twitter limit: $${form.twitter}`,
       `Max slippage: ${form.maxSlippageBps} bps`,
+      'Oversized Twitter Blinks: hard block',
       form.blockMemeCoins ? 'Meme coins blocked' : 'Meme coins allowed',
       form.trustedProtocolsOnly ? 'Trusted protocols only' : 'Open protocol access',
     ],
@@ -97,6 +98,7 @@ export default function DashboardPage() {
       blockUnknownTokens: form.blockUnknownTokens,
       allowLowLiquidityAssets: form.allowLowLiquidityAssets,
       minLiquidityUsd: form.allowLowLiquidityAssets ? 75000 : 250000,
+      autoDownsize: false,
       trustedProtocols: form.trustedProtocols
         .split(',')
         .map((item) => item.trim().toLowerCase())
