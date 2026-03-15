@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, ShieldAlert } from 'lucide-react'
 import { useDarkAgent } from '../../context/DarkAgentContext'
 import { normalizePolicy, PERSONA_PRESETS, TRUSTED_PROTOCOLS } from '../../lib/policyEngine'
-import { AppShell, GlowButton, Input, Label, MetricCard, PageHeader, SectionCard, StatusBadge, ViewportFit } from '../../components/darkagent/Ui'
+import { AppShell, GlowButton, Input, Label, MetricCard, PageHeader, ProductPulse, SectionCard, StatusBadge, ViewportFit, WalletSummaryCard } from '../../components/darkagent/Ui'
+import { DEFAULT_ENS_PROFILE } from '../../lib/product'
 
-const DEFAULT_PROFILE = 'alice.eth'
+const DEFAULT_PROFILE = DEFAULT_ENS_PROFILE
 const DEFAULT_FORM = {
   persona: 'balanced',
   maxTradeUsd: 800,
@@ -112,11 +113,32 @@ export default function DashboardPage() {
       <ViewportFit>
         <div className="mx-auto w-full max-w-5xl">
           <PageHeader
-            eyebrow="Policy"
-            title="Set your policy."
-            description="Limits, source controls, and trusted protocols."
+            eyebrow="Operator policy"
             actions={<StatusBadge status={saved ? 'safe' : 'downsized'}>{saved ? 'Saved' : 'Active profile'}</StatusBadge>}
           />
+
+          <div className="mt-6">
+            <ProductPulse
+              stats={[
+                {
+                  label: 'ENS profile',
+                  value: DEFAULT_PROFILE,
+                  detail: `Updated ${formatDateTime(profile?.stored?.updatedAt)}`,
+                  icon: ShieldAlert,
+                },
+                {
+                  label: 'Watcher',
+                  value: profile?.pendingSync ? 'Pending sync' : watcherLiveLabel,
+                  detail: watcherStatus?.lastSyncAt ? `Last sync ${formatDateTime(watcherStatus.lastSyncAt)}` : 'Waiting for first sync',
+                },
+                {
+                  label: 'Twitter cap',
+                  value: `$${form.twitter}`,
+                  detail: 'Max spend accepted from social agent sources',
+                },
+              ]}
+            />
+          </div>
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
             <SectionCard className="overflow-hidden">
@@ -163,6 +185,8 @@ export default function DashboardPage() {
                 <div>
                     <Label>Twitter limit</Label>
                     <Input value={form.twitter} onChange={(event) => setForm((current) => ({ ...current, twitter: event.target.value }))} />
+                </div>
+              </div>
 
               <div className="mt-6">
                 <GlowButton onClick={handleSave} className="bg-vault-green text-black hover:bg-vault-green/90 disabled:opacity-60" disabled={busy}>
@@ -172,6 +196,7 @@ export default function DashboardPage() {
             </SectionCard>
 
             <div className="grid gap-5">
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <MetricCard
                   label="Profile"

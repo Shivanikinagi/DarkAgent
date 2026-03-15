@@ -97,5 +97,93 @@
       "tokenOut": "ETH"
     },
     "createdAt": "2026-03-14T22:40:12.841Z"
+  },
+  "f1cbec6a08": {
+    "id": "f1cbec6a08",
+    "blinkUrl": "http://localhost:5176/analyze?title=AI+size+too+large+on+Base&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&protocol=Uniswap&chain=Base&sender=%40DeepTrendBot&tweetCopy=Momentum+confirmed+on+Base%2C+scaling+the+position.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "AI size too large on Base",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T02:19:41.640Z"
+  },
+  "13b042a460": {
+    "id": "13b042a460",
+    "blinkUrl": "http://localhost:5176/analyze?title=AI+size+too+large+on+Base&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&protocol=Uniswap&chain=Base&sender=%40DeepTrendBot&tweetCopy=Momentum+confirmed+on+Base%2C+scaling+the+position.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "AI size too large on Base",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T02:29:30.401Z"
+  },
+  "f5e6d50498": {
+    "id": "f5e6d50498",
+    "blinkUrl": "http://localhost:5176/analyze?title=AI+size+too+large+on+Base&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=5&protocol=Uniswap&chain=Base&sender=%40DeepTrendBot&tweetCopy=Momentum+confirmed+on+Base%2C+scaling+the+position.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "AI size too large on Base",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T02:29:52.816Z"
+  },
+  "26ac04993a": {
+    "id": "26ac04993a",
+    "blinkUrl": "http://localhost:5176/analyze?title=AI+size+too+large+on+Base&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&protocol=Uniswap&chain=Base&sender=%40DeepTrendBot&tweetCopy=Momentum+confirmed+on+Base%2C+scaling+the+position.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "AI size too large on Base",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T02:39:05.740Z"
+  },
+  "388016e366": {
+    "id": "388016e366",
+    "blinkUrl": "http://localhost:5176/analyze?title=AI+size+too+large+on+Base&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&protocol=Uniswap&chain=Base&sender=%40DeepTrendBot&tweetCopy=Momentum+confirmed+on+Base%2C+scaling+the+position.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "AI size too large on Base",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T02:43:47.772Z"
+  },
+  "4daa14ab09": {
+    "id": "4daa14ab09",
+    "blinkUrl": "http://localhost:5176/analyze?title=AI+size+too+large+on+Base&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&protocol=Uniswap&chain=Base&sender=%40DeepTrendBot&tweetCopy=Momentum+confirmed+on+Base%2C+scaling+the+position.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "AI size too large on Base",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T02:55:01.576Z"
+  },
+  "84ce9095e5": {
+    "id": "84ce9095e5",
+    "blinkUrl": "http://localhost:5176/analyze?title=AI+size+too+large+on+Base&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&protocol=Uniswap&chain=Base&sender=%40DeepTrendBot&tweetCopy=Momentum+confirmed+on+Base%2C+scaling+the+position.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "AI size too large on Base",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T03:06:19.372Z"
+  },
+  "f0938469af": {
+    "id": "f0938469af",
+    "blinkUrl": "http://localhost:5176/analyze?title=AI+size+too+large+on+Base&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=800&protocol=Uniswap&chain=Base&sender=%40DeepTrendBot&tweetCopy=Momentum+confirmed+on+Base%2C+scaling+the+position.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "AI size too large on Base",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T03:12:22.160Z"
   }
 }

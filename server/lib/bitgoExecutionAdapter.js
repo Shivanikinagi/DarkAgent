@@ -1,12 +1,38 @@
-const { randomUUID } = require("crypto");
-const { Wallet } = require("ethers");
-
 class BitGoExecutionAdapter {
-  constructor({ mode = process.env.DARKAGENT_EXECUTION_MODE || "mock" } = {}) {
+  constructor({ mode = process.env.DARKAGENT_EXECUTION_MODE || "live" } = {}) {
     this.mode = mode;
     this.syncedPolicies = new Map();
     this.liveAdapter = null;
     this.liveAdapterError = null;
+    this.requireLiveConfig();
+  }
+
+  requireLiveConfig() {
+    if (this.mode !== "live") {
+      throw new Error(
+        `DarkAgent is configured for strict live execution, but mode '${this.mode}' was requested. Set DARKAGENT_EXECUTION_MODE=live.`
+      );
+    }
+
+    const requiredEnv = [
+      "BITGO_ACCESS_TOKEN",
+      "BITGO_WALLET_ID",
+      "BITGO_PASSPHRASE",
+      "BITGO_ENV",
+      "BASE_SEPOLIA_RPC",
+    ];
+    const missing = requiredEnv.filter((key) => !process.env[key]);
+    if (
+      !process.env.DARKAGENT_EXECUTOR_PRIVATE_KEY &&
+      !process.env.PRIVATE_KEY
+    ) {
+      missing.push("DARKAGENT_EXECUTOR_PRIVATE_KEY or PRIVATE_KEY");
+    }
+    if (missing.length > 0) {
+      throw new Error(
+        `Missing live BitGo configuration: ${missing.join(", ")}.`
+      );
+    }
   }
 
   async syncPermissions(ensName, policy) {
@@ -17,13 +43,6 @@ class BitGoExecutionAdapter {
       allowedProtocols: [...policy.allowedProtocols],
       syncedAt: new Date().toISOString(),
     });
-
-    if (this.mode !== "live") {
-      return {
-        mode: this.mode,
-        synced: true,
-      };
-    }
 
     try {
       if (!this.liveAdapter) {
@@ -45,12 +64,9 @@ class BitGoExecutionAdapter {
       };
     } catch (error) {
       this.liveAdapterError = error.message;
-      this.mode = "mock";
-      return {
-        mode: "mock",
-        synced: true,
-        warning: `Fell back to mock execution because live BitGo sync failed: ${error.message}`,
-      };
+      throw new Error(
+        `BitGo live sync failed for ${ensName}: ${error.message}`
+      );
     }
   }
 
@@ -60,35 +76,32 @@ class BitGoExecutionAdapter {
       throw new Error("BitGo policy is currently frozen for this ENS profile.");
     }
 
-    const stealthWallet = Wallet.createRandom();
+    if (!this.liveAdapter) {
+      throw new Error(
+        "BitGo live adapter is not initialized. Policy sync must succeed before execution."
+      );
+    }
+    const liveResult = await this.liveAdapter.executeWithPolicy({
+      valueWei: Math.round(evaluation.amountUsd * 1_000_000),
+      actionId: action.id,
+      payload,
+    });
 
-    if (this.mode === "live" && this.liveAdapter) {
-      const liveResult = await this.liveAdapter.executeWithPolicy({
-        valueWei: Math.round(evaluation.amountUsd * 1_000_000),
-        actionId: action.id,
-        payload,
-      });
-
-      if (!liveResult.success) {
-        throw new Error(liveResult.reason || "BitGo blocked this request.");
-      }
-
-      return {
-        mode: "live",
-        txid: liveResult.txid,
-        stealthAddress: stealthWallet.address,
-        settlementNetwork: action.settlementChain,
-        receiptUrl: `https://app.bitgo.com/tx/${liveResult.txid}`,
-      };
+    if (!liveResult.success) {
+      throw new Error(liveResult.reason || "BitGo blocked this request.");
     }
 
-    const txid = `mocktx_${Date.now()}_${randomUUID().slice(0, 8)}`;
     return {
-      mode: "mock",
-      txid,
-      stealthAddress: stealthWallet.address,
+      mode: "live",
+      txid: liveResult.txid,
+      stealthAddress: liveResult.address,
       settlementNetwork: action.settlementChain,
-      receiptUrl: `https://app.bitgo-test.com/tx/${txid}`,
+      receiptUrl: liveResult.txid
+        ? `https://sepolia.basescan.org/tx/${liveResult.txid}`
+        : "",
+      amountWei: liveResult.amountWei,
+      amountEth: liveResult.amountEth,
+      bitgoWalletId: process.env.BITGO_WALLET_ID,
     };
   }
 }

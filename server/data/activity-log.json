@@ -1,5 +1,150 @@
 [
   {
+    "id": "28d8cea8-5e7c-4366-ad85-1deb838865da",
+    "createdAt": "2026-03-15T03:12:22.276Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "twitter",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "cd16fa3d-9376-45a2-a5b7-7bcfe916ac18",
+    "createdAt": "2026-03-15T03:06:19.507Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "twitter",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "b72aea52-a253-4234-9316-28aa04837b67",
+    "createdAt": "2026-03-15T02:55:01.734Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "twitter",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "4b5f0af8-6e91-4e8b-bd9e-7a2d7c205e0b",
+    "createdAt": "2026-03-15T02:43:47.938Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "twitter",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "df938ae1-288e-421f-89e3-ef1be3920757",
+    "createdAt": "2026-03-15T02:39:05.959Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "twitter",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "c44b8ccd-5e70-4c8c-9688-ff861901b124",
+    "createdAt": "2026-03-15T02:30:52.941Z",
+    "type": "policy",
+    "ensName": "alice.eth",
+    "status": "updated",
+    "details": {
+      "persona": "balanced",
+      "maxTradeUsd": 500,
+      "maxSlippageBps": 10,
+      "trustedProtocolsOnly": true,
+      "blockMemeCoins": true,
+      "blockUnknownTokens": true,
+      "allowLowLiquidityAssets": false,
+      "minLiquidityUsd": 250000,
+      "trustedProtocols": [
+        "uniswap",
+        "aave",
+        "1inch"
+      ],
+      "sourceLimits": {
+        "twitter": 300
+      }
+    }
+  },
+  {
+    "id": "240ccea6-f2e5-457c-80c7-bea55fd7a5ba",
+    "createdAt": "2026-03-15T02:29:52.899Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "twitter",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 5,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "4bb4fcbb-1fe7-41b7-a931-d107f9e4163d",
+    "createdAt": "2026-03-15T02:29:30.502Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "twitter",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "bb2aa708-74f9-472d-adf7-74562774398b",
+    "createdAt": "2026-03-15T02:19:41.735Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "twitter",
+    "sourceName": "@DeepTrendBot",
+    "protocol": "uniswap",
+    "amountUsd": 800,
+    "status": "block",
+    "reason": "Slippage 100 bps is well above your max slippage."
+  },
+  {
+    "id": "1e322919-9206-4bac-8699-eefb0d4363c9",
+    "createdAt": "2026-03-15T01:24:59.105Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "influencer",
+    "sourceName": "@MoonAlphaX",
+    "protocol": "uniswap",
+    "amountUsd": 1000,
+    "status": "block",
+    "reason": "MEME is categorized as a meme coin and is blocked."
+  },
+  {
+    "id": "c426b2cb-f963-49ac-bac2-7ee93e6130d8",
+    "createdAt": "2026-03-15T01:24:59.091Z",
+    "type": "analysis",
+    "ensName": "alice.eth",
+    "source": "influencer",
+    "sourceName": "@MoonAlphaX",
+    "protocol": "uniswap",
+    "amountUsd": 1000,
+    "status": "block",
+    "reason": "MEME is categorized as a meme coin and is blocked."
+  },
+  {
     "id": "e361b45a-73e9-4a21-aeb5-8ad58d95f768",
     "createdAt": "2026-03-15T01:03:35.673Z",
     "type": "analysis",

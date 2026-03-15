@@ -41,12 +41,13 @@
       "friend": 150,
       "copy_trader": 250,
       "community": 150,
-      "unknown": 0
+      "unknown": 0,
+      "twitter": 300
     },
     "notifyEmail": "alice@darkagent.demo",
     "bitgoPolicyId": "bitgo-alice-eth",
     "notes": "Balanced retail profile for social and AI Blink trading.",
-    "updatedAt": "2026-03-14T22:17:48.936Z"
+    "updatedAt": "2026-03-15T02:30:52.939Z"
   },
   "ops.eth": {
     "ensName": "ops.eth",

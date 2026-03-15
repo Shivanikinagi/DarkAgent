@@ -1,6 +1,11 @@
 const { randomUUID } = require("crypto");
-const { Wallet, utils } = require("ethers");
-const { arrayify, keccak256, toUtf8Bytes, verifyMessage } = utils;
+const {
+  Wallet,
+  getBytes,
+  keccak256,
+  toUtf8Bytes,
+  verifyMessage,
+} = require("ethers");
 
 function stableSerialize(value) {
   if (Array.isArray(value)) {
@@ -62,8 +67,8 @@ class ProofService {
       )
     );
 
-    const signature = await this.signer.signMessage(arrayify(receiptHash));
-    const recoveredSigner = verifyMessage(arrayify(receiptHash), signature);
+    const signature = await this.signer.signMessage(getBytes(receiptHash));
+    const recoveredSigner = verifyMessage(getBytes(receiptHash), signature);
 
     const proof = {
       id: randomUUID(),

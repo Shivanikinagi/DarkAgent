@@ -55,9 +55,9 @@ export const featureHighlights = [
 ]
 
 export const productPrinciples = [
-  'Built for social trading and AI trading, not generic wallet monitoring.',
+  'Built for AI-assisted trading desks, not generic wallet monitoring.',
   'Designed to make Blink risk obvious in under 15 seconds.',
-  'Optimized for a crisp 2-minute hackathon demo with strong visuals and policy changes live.',
+  'Framed as a real operator workflow with wallet approval, settlement state, and audit trails.',
 ]
 
 export function buildMockTweet(blink: BlinkDraft) {

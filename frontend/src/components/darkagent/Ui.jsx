@@ -1,6 +1,133 @@
-import { useEffect, useRef, useState } from 'react'
+import { createElement, useMemo } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Shield, ShieldAlert, ShieldCheck, ShieldX, Sparkles } from 'lucide-react'
+import { Activity, Shield, ShieldAlert, ShieldCheck, ShieldX, Sparkles, Wallet } from 'lucide-react'
+import { useAccount, useBalance, useChainId, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
+import { BASE_SEPOLIA_CHAIN_ID, BASE_SEPOLIA_LABEL, shortAddress } from '../../lib/product'
+
+export function ConnectWalletButton() {
+  const { address, isConnected } = useAccount()
+  const chainId = useChainId()
+  const { connect, connectors } = useConnect()
+  const { disconnect } = useDisconnect()
+  const { switchChainAsync, isPending } = useSwitchChain()
+  const { data: balance } = useBalance({
+    address,
+    query: {
+      enabled: Boolean(address),
+    },
+  })
+
+  const coinbaseWalletConnector = connectors.find((connector) => connector.id === 'coinbaseWalletSDK') || connectors[0]
+  const wrongChain = isConnected && chainId !== BASE_SEPOLIA_CHAIN_ID
+
+  if (isConnected) {
+    return (
+      <div className="ml-4 flex items-center gap-2">
+        {wrongChain && (
+          <button
+            onClick={() => switchChainAsync({ chainId: BASE_SEPOLIA_CHAIN_ID })}
+            className="inline-flex items-center rounded-full border border-amber-500/25 bg-amber-500/10 px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100 transition hover:bg-amber-500/20"
+          >
+            {isPending ? 'Switching...' : 'Switch to Base'}
+          </button>
+        )}
+        <button
+          onClick={() => disconnect()}
+          className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-100 transition hover:bg-emerald-400/20"
+        >
+          <span className={`h-2 w-2 rounded-full ${wrongChain ? 'bg-amber-300' : 'bg-emerald-300'}`} />
+          <span>{shortAddress(address)}</span>
+          <span className="text-xs text-emerald-200/80">{balance ? `${Number(balance.formatted).toFixed(4)} ${balance.symbol}` : BASE_SEPOLIA_LABEL}</span>
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      onClick={() => connect({ connector: coinbaseWalletConnector })}
+      className="inline-flex items-center rounded-full border border-blue-500/30 bg-blue-500/20 px-4 py-2 text-sm font-medium text-blue-100 transition hover:bg-blue-500/30 ml-4"
+    >
+      Connect Coinbase Wallet
+    </button>
+  )
+}
+
+export function NetworkPill() {
+  const chainId = useChainId()
+  const live = chainId === BASE_SEPOLIA_CHAIN_ID
+
+  return (
+    <div
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+        live ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-100' : 'border-amber-400/20 bg-amber-400/10 text-amber-100'
+      }`}
+    >
+      <span className={`h-2 w-2 rounded-full ${live ? 'bg-emerald-300' : 'bg-amber-300'}`} />
+      {live ? BASE_SEPOLIA_LABEL : 'Wallet off network'}
+    </div>
+  )
+}
+
+export function WalletSummaryCard({ title = 'Wallet posture', detail, className = '' }) {
+  const { address, isConnected } = useAccount()
+  const chainId = useChainId()
+  const { data: balance } = useBalance({
+    address,
+    query: {
+      enabled: Boolean(address),
+    },
+  })
+
+  const status = !isConnected ? 'No signer' : chainId === BASE_SEPOLIA_CHAIN_ID ? 'Ready for Base Sepolia' : 'Switch network'
+
+  return (
+    <SectionCard className={className}>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">{title}</div>
+          <div className="mt-2 text-lg font-semibold text-white">{status}</div>
+        </div>
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-black/20 text-vault-green">
+          <Wallet className="h-5 w-5" />
+        </div>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <MetricCard label="Signer" value={isConnected ? shortAddress(address) : 'Connect wallet'} detail={detail || (isConnected ? 'Used to approve agent actions' : 'Coinbase Smart Wallet or injected wallet')} />
+        <MetricCard label="Balance" value={balance ? `${Number(balance.formatted).toFixed(4)} ${balance.symbol}` : '--'} detail={chainId === BASE_SEPOLIA_CHAIN_ID ? BASE_SEPOLIA_LABEL : 'Switch to Base Sepolia'} />
+      </div>
+    </SectionCard>
+  )
+}
+
+export function ProductPulse({ stats = [] }) {
+  const cards = useMemo(
+    () =>
+      stats.map((stat) => ({
+        ...stat,
+        icon: stat.icon || Activity,
+      })),
+    [stats]
+  )
+
+  return (
+    <div className="grid gap-3 md:grid-cols-3">
+      {cards.map((item) => {
+        const Icon = item.icon
+        return (
+          <div key={item.label} className="rounded-2xl border border-white/8 bg-black/20 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-[11px] uppercase tracking-[0.2em] text-vault-slate">{item.label}</div>
+              <Icon className="h-4 w-4 text-vault-green" />
+            </div>
+            <div className="mt-3 text-2xl font-semibold text-white">{item.value}</div>
+            {item.detail && <div className="mt-1 text-sm text-slate-400">{item.detail}</div>}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 const verdictStyles = {
   safe: 'border-emerald-400/20 bg-emerald-400/10 text-emerald-200',
@@ -20,9 +147,9 @@ export function AppShell({ children }) {
   const navItems = [
     ['/', 'Home'],
     ['/dashboard', 'Policy'],
-    ['/create', 'Create'],
-    ['/analyze', 'Analyze'],
-    ['/activity', 'Activity'],
+    ['/create', 'Inbox'],
+    ['/analyze', 'Review'],
+    ['/activity', 'Ops Log'],
   ]
 
   return (
@@ -36,7 +163,7 @@ export function AppShell({ children }) {
             </div>
             <div>
               <div className="text-base font-semibold tracking-tight text-white">DarkAgent</div>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-vault-slate">Blink trading firewall</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-vault-slate">Agent transaction firewall</div>
             </div>
           </Link>
 
@@ -56,65 +183,26 @@ export function AppShell({ children }) {
             ))}
           </nav>
 
-          <Link
-            to="/create"
-            className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-medium text-white transition hover:bg-white/[0.08]"
-          >
-            Try Demo
-          </Link>
+          <div className="flex items-center">
+            <NetworkPill />
+            <Link
+              to="/create"
+              className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-medium text-white transition hover:bg-white/[0.08]"
+            >
+              Open inbox
+            </Link>
+            <ConnectWalletButton />
+          </div>
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto h-[calc(100vh-65px)] max-w-6xl overflow-hidden px-5 py-4 lg:px-8 lg:py-5">{children}</main>
+      <main className="relative z-10 mx-auto h-[calc(100vh-65px)] max-w-6xl overflow-y-auto px-5 py-4 lg:px-8 lg:py-5">{children}</main>
     </div>
   )
 }
 
 export function ViewportFit({ children, className = '' }) {
-  const outerRef = useRef(null)
-  const innerRef = useRef(null)
-  const [scale, setScale] = useState(1)
-
-  useEffect(() => {
-    const updateScale = () => {
-      if (!outerRef.current || !innerRef.current) return
-      const availableHeight = outerRef.current.clientHeight
-      const contentHeight = innerRef.current.scrollHeight
-      if (!availableHeight || !contentHeight) return
-
-      const nextScale = Math.min(1, availableHeight / contentHeight)
-      setScale((current) => (Math.abs(current - nextScale) < 0.01 ? current : nextScale))
-    }
-
-    updateScale()
-
-    const observer = new ResizeObserver(updateScale)
-    if (outerRef.current) observer.observe(outerRef.current)
-    if (innerRef.current) observer.observe(innerRef.current)
-
-    window.addEventListener('resize', updateScale)
-    return () => {
-      observer.disconnect()
-      window.removeEventListener('resize', updateScale)
-    }
-  }, [children])
-
-  return (
-    <div ref={outerRef} className={`h-full overflow-hidden ${className}`}>
-      <div className="flex h-full justify-center overflow-hidden">
-        <div
-          ref={innerRef}
-          className="w-full"
-          style={{
-            transform: `scale(${scale})`,
-            transformOrigin: 'top center',
-          }}
-        >
-          {children}
-        </div>
-      </div>
-    </div>
-  )
+  return <div className={`min-h-full ${className}`}>{children}</div>
 }
 
 export function PageHeader({ eyebrow, title, description, actions }) {
@@ -159,13 +247,13 @@ export function StatusBadge({ status, children }) {
 }
 
 export function GlowButton({ as: Comp = 'button', className = '', children, ...props }) {
-  return (
-    <Comp
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition ${className}`}
-      {...props}
-    >
-      {children}
-    </Comp>
+  return createElement(
+    Comp,
+    {
+      className: `inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition ${className}`,
+      ...props,
+    },
+    children
   )
 }
 

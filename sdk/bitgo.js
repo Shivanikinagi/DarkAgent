@@ -1,103 +1,198 @@
-require('dotenv').config()
-const { BitGo } = require('bitgo')
+require("dotenv").config();
 
-/**
- * AgentPolicyAdapter
- * 
- * First AI Agent adapter for BitGo. Synchronizes ENS Agent Permissions natively 
- * into BitGo enterprise velocity limits and whitelists.
- * 
- * Also guarantees $1,200 Privacy Prize criteria by ensuring agents get a fresh
- * BitGo sub-address generated every time they execute to ensure transactions 
- * are un-linkable.
- */
+const { JsonRpcProvider, Wallet, formatEther } = require("ethers");
+
+const BITGO_ENVIRONMENTS = {
+  prod: "https://app.bitgo.com",
+  production: "https://app.bitgo.com",
+  test: "https://app.bitgo-test.com",
+  testnet: "https://app.bitgo-test.com",
+  dev: "https://app.bitgo-dev.com",
+  staging: "https://app.bitgo-staging.com",
+};
+
+function resolveBitGoBaseUrl(env) {
+  const key = String(env || "test").toLowerCase();
+  return BITGO_ENVIRONMENTS[key] || BITGO_ENVIRONMENTS.test;
+}
+
+function resolveExecutionPrivateKey() {
+  return (
+    process.env.DARKAGENT_EXECUTOR_PRIVATE_KEY ||
+    process.env.PRIVATE_KEY ||
+    null
+  );
+}
+
+function buildHeaders(accessToken) {
+  return {
+    Accept: "application/json",
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": "application/json",
+  };
+}
+
+function buildApiUrl(baseUrl, coin, walletId, suffix = "") {
+  return `${baseUrl}/api/v2/${coin}/wallet/${walletId}${suffix}`;
+}
+
+async function parseBitGoResponse(response) {
+  const contentType = response.headers.get("content-type") || "";
+  const body = contentType.includes("application/json")
+    ? await response.json()
+    : await response.text();
+
+  if (!response.ok) {
+    const message =
+      (body && typeof body === "object" && (body.message || body.error)) ||
+      response.statusText ||
+      "BitGo request failed";
+    const error = new Error(message);
+    error.status = response.status;
+    error.payload = body;
+    throw error;
+  }
+
+  return body;
+}
+
 class AgentPolicyAdapter {
-
-  constructor(env = 'test', coin = 'tbase') {
-    const accessToken = process.env.BITGO_ACCESS_TOKEN;
-    if (!accessToken) throw new Error('BITGO_ACCESS_TOKEN not set');
-    
-    this.bitgo = new BitGo({ env, accessToken });
+  constructor(env = "test", coin = "tbase") {
+    this.env = env;
     this.coin = coin;
+    this.accessToken = process.env.BITGO_ACCESS_TOKEN;
     this.walletId = process.env.BITGO_WALLET_ID;
+    this.baseUrl = resolveBitGoBaseUrl(env);
+    this.walletPassphrase = process.env.BITGO_PASSPHRASE;
+    this.baseSepoliaRpc = process.env.BASE_SEPOLIA_RPC;
+    this.executionPrivateKey = resolveExecutionPrivateKey();
+    this.provider = this.baseSepoliaRpc
+      ? new JsonRpcProvider(this.baseSepoliaRpc)
+      : null;
+    this.executionSigner =
+      this.provider && this.executionPrivateKey
+        ? new Wallet(this.executionPrivateKey, this.provider)
+        : null;
+
+    if (!this.accessToken) throw new Error("BITGO_ACCESS_TOKEN not set");
+    if (!this.walletId) throw new Error("BITGO_WALLET_ID not set");
+    if (!this.walletPassphrase) throw new Error("BITGO_PASSPHRASE not set");
+    if (!this.baseSepoliaRpc) throw new Error("BASE_SEPOLIA_RPC not set");
+    if (!this.executionPrivateKey) {
+      throw new Error(
+        "DARKAGENT_EXECUTOR_PRIVATE_KEY or PRIVATE_KEY must be set"
+      );
+    }
+  }
+
+  async request(method, suffix = "", body) {
+    const response = await fetch(buildApiUrl(this.baseUrl, this.coin, this.walletId, suffix), {
+      method,
+      headers: buildHeaders(this.accessToken),
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+
+    return parseBitGoResponse(response);
   }
 
   async getWallet() {
-    if (!this.walletId) throw new Error('BITGO_WALLET_ID not set');
-    return this.bitgo.coin(this.coin).wallets().get({ id: this.walletId });
+    return this.request("GET");
   }
 
-  /**
-   * Reads ENS, creates BitGo policy automatically
-   */
+  async setPolicyRule(rule) {
+    return this.request("PUT", "/policy/rule", rule);
+  }
+
+  async createPolicyRule(rule) {
+    return this.request("POST", "/policy/rule", rule);
+  }
+
+  async upsertPolicyRule(rule) {
+    try {
+      return await this.setPolicyRule(rule);
+    } catch (error) {
+      if (error.status === 404 || error.status === 400) {
+        return this.createPolicyRule(rule);
+      }
+
+      throw error;
+    }
+  }
+
   async syncPermissions(ensName, perms) {
-    const wallet = await this.getWallet();
-    
-    // Sync ENS agent.max_spend -> BitGo Velocity Limit
     if (perms.maxSpend) {
-       const amountWei = Number(perms.maxSpend) * 1e18; 
-       await wallet.updatePolicyRule({
-         id: `agent-limit-${ensName}`,
-         type: 'velocityLimit',
-         action: { type: 'deny' },
-         condition: {
-           amountString: String(amountWei),
-           timeWindow: 86400, // Syncing to ENS agent.daily_limit
-           groupTags: [], 
-           excludeTags: []
-         }
-       });
-       console.log(`[BitGo Policy Adapter] Synced velocity limit from ENS max_spend for ${ensName}`);
+      const amountString = String(Math.round(Number(perms.maxSpend) * 1e18));
+      await this.upsertPolicyRule({
+        id: `agent-limit-${ensName}`,
+        type: "velocityLimit",
+        action: { type: "deny" },
+        condition: {
+          amountString,
+          timeWindow: 86400,
+          groupTags: [],
+          excludeTags: [],
+        },
+      });
     }
 
-    // Sync ENS agent.protocols -> BitGo Address Whitelist
-    if (perms.allowedProtocols && perms.allowedProtocols.length > 0) {
-       await wallet.updatePolicyRule({
-         id: `agent-whitelist-${ensName}`,
-         type: 'allowanddeny',
-         action: { type: 'deny' },
-         condition: { add: perms.allowedProtocols }
-       });
-       console.log(`[BitGo Policy Adapter] Synced whitelist from ENS allowed_protocols for ${ensName}`);
+    if (Array.isArray(perms.allowedProtocols) && perms.allowedProtocols.length > 0) {
+      await this.upsertPolicyRule({
+        id: `agent-whitelist-${ensName}`,
+        type: "allowanddeny",
+        action: { type: "deny" },
+        condition: {
+          add: perms.allowedProtocols,
+        },
+      });
     }
-    
+
     return { success: true };
   }
 
-  /**
-   * Fresh address every time (Hits the Privacy Prize target precisely)
-   */
   async getExecutionAddress() {
-    const wallet = await this.getWallet();
-    const result = await wallet.createAddress({
-       label: `agent-tx-${Date.now()}` 
+    const result = await this.request("POST", "/address", {
+      label: `agent-tx-${Date.now()}`,
     });
-    console.log(`[BitGo Policy Adapter] Generated fresh privacy execution address: ${result.address}`);
+
+    if (!result?.address) {
+      throw new Error("BitGo did not return an execution address");
+    }
+
     return result.address;
   }
 
-  /**
-   * Agent proposes, BitGo enforces
-   */
+  scaleSettlementAmount(valueWeiLike) {
+    const baseUnits = BigInt(String(valueWeiLike || 0));
+    const minimumSettlement = 1000000000000n;
+    const scaled = baseUnits * 1000000n;
+    return scaled > minimumSettlement ? scaled : minimumSettlement;
+  }
+
   async executeWithPolicy(proposal) {
-    const wallet = await this.getWallet();
-    
-    // Request fresh un-linkable address for privacy
-    const address = await this.getExecutionAddress(); 
-    const passphrase = process.env.BITGO_PASSPHRASE;
-    
-    console.log(`[BitGo Policy Adapter] Executing to fresh address ${address} with enterprise policy check...`);
-    
+    const address = await this.getExecutionAddress();
+    const settlementValue = this.scaleSettlementAmount(proposal.valueWei);
+
     try {
-      const result = await wallet.send({
-        address,
-        amount: String(proposal.valueWei),
-        walletPassphrase: passphrase
+      const tx = await this.executionSigner.sendTransaction({
+        to: address,
+        value: settlementValue,
       });
-      return { success: true, txid: result.txid };
+      const receipt = await tx.wait();
+
+      return {
+        success: true,
+        txid: tx.hash,
+        address,
+        amountWei: settlementValue.toString(),
+        amountEth: formatEther(settlementValue),
+        blockNumber: receipt?.blockNumber ?? null,
+      };
     } catch (error) {
-      console.error(`[BitGo Policy Adapter] Execution Blocked:`, error.message);
-      return { success: false, reason: error.message };
+      return {
+        success: false,
+        reason: error.message,
+        address,
+      };
     }
   }
 }

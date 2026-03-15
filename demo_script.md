@@ -1,37 +1,161 @@
-﻿## 🚨 The Problem & Solution
+## DarkAgent Demo Recording Script
 
-### The Problem
-The DeFi space is sprinting toward an AI-agent future, but it lacks a fundamental layer of trust. Everyone wants the benefit of an autonomous bot trading for them 24/7. However, handing an AI bot or an external social signal access to your actual funds without hard, mathematical boundaries is reckless. It exposes your liquidity to runaway slippage, unauthorized interactions with malicious smart contracts, and dangerous token swaps (like dumping your portfolio into a meme-coin rugpull). 
+### Demo Length
+2 to 3 minutes
 
-Retail users and institutions alike need a way to **sandbox** their agents so they can operate freely, but only within strict, predefined limits. The problem is: how do you prove an agent followed the rules without exposing your exact trading strategies and bankroll to the public?
-
-### The Solution: DarkAgent
-**DarkAgent** acts as an unbreakable, decentralized firewall between autonomous agents and your wallet. We allow users to clearly define *exactly* what their agents are allowed to do.
-
-1. **Decentralized Rules via ENS:** Users bind their trading rules (daily limits, whitelisted tokens, trusted protocols) directly to their ENS identity (e.g., lice.eth).
-2. **Real-time Interception (Policy Engine):** When an agent attempts a transaction (a "Blink"), the DarkAgent Policy Engine intercepts it, dynamically scoring it. If the transaction violates the rules—like trying to spend  on an unverified meme coin—the engine forcefully Blocks it or Downsizes it to a safe amount (e.g.,  max).
-3. **ZK-Compliance with Noir:** Once execution is approved, DarkAgent generates a Zero-Knowledge Proof (via Noir). This mathematically proves on-chain that the agent acted strictly within the ENS rules, *without ever revealing the exact limits or strategy to the public.*
-4. **Seamless Execution:** The verified transaction is then executed gaslessly using Coinbase Smart Wallets deployed on Base Sepolia.
+### Goal
+Show DarkAgent as a real AI-agent transaction firewall:
+- an AI agent generates a Blink
+- DarkAgent reviews it against policy
+- unsafe intent is blocked or rewritten
+- a real wallet approves the safe action on Base Sepolia
+- the app preserves an operator-grade audit trail
 
 ---
 
-## 🎥 Recording Script for the Demo
+## Before Recording
 
-**[0:00 - 0:15] The Hook**
-*"Imagine waking up to find your favorite AI trading bot went rogue—dumping your entire portfolio into a meme coin. Handing bots the keys to your wallet is reckless. We built DarkAgent because your AI agent shouldn’t have the keys to the kingdom without a chaperone."*
+Make sure:
+- the frontend is running
+- the Blink proxy server is running
+- your wallet is connected
+- your wallet is on Base Sepolia
+- you have a little test ETH on Base Sepolia for the approval transaction
 
-**[0:15 - 0:35] Creating the Threat (Create Blink Tab)**
-*(Visual: On the 'Create Blink' tab. Select 'AI_Bot', set Amount to '800' USDC, and select 'DEGEN' meme coin. Click 'Generate Blink'.)*
-*"Let’s look at a live example on Base Sepolia. Here, a rogue AI agent has generated a transaction request—a Blink—trying to dump  USDC into an unverified meme coin. Normally, if this bot had our keys, our funds would be gone."*
+Recommended recording path:
+1. Landing page
+2. Policy page
+3. Agent inbox
+4. Review page
+5. Wallet approval modal
+6. Ops log
 
-**[0:35 - 1:00] The Interception (Analyze Blink Tab)**
-*(Visual: Switch to 'Analyze Blink' tab, paste the Blink URL or watch it auto-load. Hover over the red warning cards.)*
-*"But DarkAgent intercepts it. Our Policy Engine checks this transaction against the rules stored on this user’s ENS profile. Instantly, it detects the unauthorized token and realizes the  amount breaches our daily budget limit. Instead of failing completely, DarkAgent steps in and forcefully downsizes the risky trade to a strictly enforced, safe  limit."*
+---
 
-**[1:00 - 1:20] Smart Wallet Execution**
-*(Visual: Click the 'Continue / Execute Simulated' button. Show the confirmation UI.)*
-*"Since the trade is now within our safety bounds, we execute it seamlessly and gaslessly using a Coinbase Smart Wallet. No complicated seed phrases, just secure account abstraction."*
+## Recording Script
 
-**[1:20 - 1:45] The ZK Magic (Final Verification)**
-*(Visual: Show the Success message screen. Click the 'View ZK Proof' text and pull up the Base Sepolia block explorer showing Verifier.sol interaction.)*
-*"Finally, we generate a Noir Zero-Knowledge proof and verify it on-chain in real-time. This cryptographically proves to regulators and auditors that the AI acted exactly within compliance, without ever exposing our actual trading limits or strategy to the public. DarkAgent: Secure, private, and fully automated AI execution."*
+### 0:00 - 0:15
+Visual:
+Open the landing page. Keep the wallet connected in the header.
+
+Voiceover:
+"AI agents are getting better at discovering trades, but they still should not have direct, unlimited access to our wallet. DarkAgent is a transaction firewall for AI agents. It lets the agent propose actions, but it only allows the wallet to sign what fits the user’s policy."
+
+---
+
+### 0:15 - 0:35
+Visual:
+Go to the `Policy` page. Show max trade size, Twitter limit, slippage, trusted protocols, and blocked meme coins.
+
+Voiceover:
+"Here, the user defines the operating policy for their agent. These rules are tied to the identity profile and act as the guardrails for every incoming Blink. So instead of trusting the agent blindly, we trust the policy."
+
+Optional line:
+"For example, this wallet can accept ETH rebalances, but it should not over-size trades, buy meme coins, or use untrusted routes."
+
+---
+
+### 0:35 - 1:00
+Visual:
+Go to the `Inbox` page. Select the `Oversized AI trade` scenario.
+Show the request details: source, token pair, requested spend, and generated review URL.
+
+Voiceover:
+"Now I’m showing the flow from the agent’s perspective. This is the raw request generated by an external AI trading agent. It wants to swap USDC into ETH on Base, but the requested spend is larger than what this source is allowed to execute."
+
+Optional line:
+"This is important because most products stop at ‘AI can trade for you.’ We focus on whether the AI should be allowed to trade in the first place."
+
+---
+
+### 1:00 - 1:25
+Visual:
+Click `Open review`.
+On the `Review` screen, pause over the verdict, requested amount, source limit, and reason cards.
+
+Voiceover:
+"DarkAgent intercepts the Blink before execution. It parses the request, scores the risk, checks the source budget, protocol, token category, and slippage, and then explains the verdict in plain language."
+
+"In this case, the transaction is not fully rejected. DarkAgent rewrites the oversized action into a policy-compliant version, so the wallet only ever sees the safe amount."
+
+---
+
+### 1:25 - 1:50
+Visual:
+Open the approval modal.
+Show the approved trade amount, verdict, and wallet approval step.
+
+Voiceover:
+"Now we move from AI intent to wallet control. Instead of signing the agent’s original request, the user signs the sanitized version. This makes the flow feel like a real product: the agent proposes, DarkAgent enforces, and the wallet approves."
+
+---
+
+### 1:50 - 2:15
+Visual:
+Click `Approve on Base Sepolia`.
+Let the wallet popup appear and confirm.
+After confirmation, show the wallet approval transaction, explorer link, DarkAgent contract, and settlement reference.
+
+Voiceover:
+"This approval is recorded on Base Sepolia through a real wallet transaction. That matters because we’re not just simulating a button click. We’re creating an actual onchain approval trail that proves the wallet only signed the policy-safe request."
+
+Important truthful line:
+"For the demo, the wallet approval is the live onchain step. The execution panel also shows the downstream settlement and proof trail managed by DarkAgent."
+
+---
+
+### 2:15 - 2:35
+Visual:
+Go to the `Ops Log` page.
+Scroll through recent analyses, executions, and proof events.
+
+Voiceover:
+"Finally, every step is logged in the operations feed. So for an end user, a team, or even an auditor, DarkAgent creates a readable trail of what the agent asked for, what policy decided, and what the wallet actually approved."
+
+---
+
+### 2:35 - 2:50
+Visual:
+Return to a strong overview screen, either landing page or review page.
+
+Voiceover:
+"DarkAgent makes AI agents useful without making them dangerous. It brings policy control, wallet approval, and auditability into one clean execution flow for agentic finance."
+
+---
+
+## Shorter 60-Second Version
+
+### Hook
+"AI agents can discover trades, but they should not have unrestricted wallet access. DarkAgent is the policy firewall between agent intent and wallet execution."
+
+### Policy
+"The user defines spend limits, trusted protocols, and source budgets."
+
+### Agent Request
+"An AI agent sends a Blink requesting a trade."
+
+### Review
+"DarkAgent intercepts it, scores the risk, and either blocks it or rewrites it into a safe version."
+
+### Wallet
+"The connected wallet signs the approved request on Base Sepolia, not the raw AI request."
+
+### Close
+"That’s DarkAgent: AI execution with real boundaries."
+
+---
+
+## Presenter Tips
+
+- Keep the wallet connected before you start recording.
+- Use the `Oversized AI trade` scenario because it best demonstrates rewriting instead of a simple allow.
+- If you want a dramatic contrast, briefly show the `Meme coin shill` scenario and mention it would be blocked.
+- Zoom in slightly on the review cards and wallet modal during recording.
+- Open the BaseScan approval link after the wallet confirmation if you want a stronger “real product” moment.
+- Do not say the system gives the agent full wallet control. The strength of the demo is that it does not.
+
+---
+
+## One-Line Closing
+
+DarkAgent lets AI agents generate opportunities, while policy and wallet controls decide what actually gets executed.

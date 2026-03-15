@@ -1,3 +1,4 @@
+require("dotenv").config();
 const http = require("http");
 const path = require("path");
 const { URL } = require("url");
@@ -152,7 +153,7 @@ function createBlinkProxyServer(options = {}) {
     filePath: path.join(dataDir, "share-links.json"),
   });
   const executor = new BitGoExecutionAdapter({
-    mode: options.executionMode,
+    mode: options.executionMode || process.env.DARKAGENT_EXECUTION_MODE || "live",
   });
   const proofService = new ProofService({
     store: proofStore,

@@ -1,111 +1,144 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { AnimatePresence, motion } from 'framer-motion'
-import { CheckCircle2, Wallet, X } from 'lucide-react'
+import { CheckCircle2, ExternalLink, Wallet, X } from 'lucide-react'
+import { formatUsd } from '../../lib/product'
 import { StatusBadge } from './Ui'
 
-export function ExecutionDialog({ open, onOpenChange, blink, analysis, execution, onConfirm, confirming }) {
+export function ExecutionDialog({ open, onOpenChange, blink, analysis, execution, onConfirm, confirming, canConfirm = true }) {
+  const walletApproval = execution?.walletApproval
+  const settlement = execution?.execution
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <AnimatePresence>
-          <Dialog.Overlay asChild>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
-            />
-          </Dialog.Overlay>
-          <Dialog.Content asChild>
-            <motion.div
-              initial={{ opacity: 0, y: 18, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 18, scale: 0.98 }}
-              className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto p-4 md:items-center"
-            >
-              <div className="flex w-full max-w-[620px] flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#0c1118]/95 p-4 shadow-[0_40px_120px_rgba(0,0,0,0.45)] md:max-h-[calc(100vh-40px)] md:p-5">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <Dialog.Title className="text-xl font-semibold text-white">Execution Preview</Dialog.Title>
-                    <Dialog.Description className="mt-1 text-sm text-slate-400">Review before execution.</Dialog.Description>
-                  </div>
-                  <Dialog.Close className="rounded-full border border-white/10 p-2 text-slate-400 transition hover:text-white">
-                    <X className="h-4 w-4" />
-                  </Dialog.Close>
-                </div>
-
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Trade</div>
-                    <div className="mt-2 text-lg font-semibold text-white">
-                      {blink?.tokenIn} to {blink?.tokenOut}
-                    </div>
-                    <div className="mt-1.5 text-sm text-slate-400">
-                      {blink?.action} on {blink?.protocol} - {blink?.chain}
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500">DarkAgent Verdict</div>
-                    <div className="mt-2 flex items-center gap-3">
-                      <StatusBadge status={analysis?.status || 'safe'}>{analysis?.status || 'safe'}</StatusBadge>
-                      <div className="text-sm text-slate-300">Score {analysis?.score || '--'}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {!execution ? (
-                  <div className="mt-4 rounded-[24px] border border-white/10 bg-[#0b1016] p-4">
-                    <div className="flex items-center gap-3 text-white">
-                      <Wallet className="h-4.5 w-4.5 text-vault-green" />
-                      <div className="text-base font-semibold">Wallet confirmation</div>
-                    </div>
-                    <div className="mt-2 text-sm text-slate-300">
-                      {analysis?.status === 'downsized' ? 'Rewritten safe Blink.' : 'Approved Blink.'}
-                    </div>
-                    <div className="mt-4 flex justify-start">
-                      <button
-                        type="button"
-                        onClick={onConfirm}
-                        disabled={confirming}
-                        className="inline-flex items-center gap-2 rounded-full bg-vault-green px-5 py-3 text-sm font-semibold text-black transition hover:bg-vault-green/90 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        <Wallet className="h-4 w-4" /> {confirming ? 'Confirming...' : 'Confirm Execution'}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-4 rounded-[24px] border border-emerald-400/20 bg-emerald-400/10 p-4">
-                    <div className="flex items-center gap-3 text-emerald-100">
-                      <CheckCircle2 className="h-5 w-5" />
-                      <div className="text-base font-semibold">Execution confirmed</div>
-                    </div>
-                    <div className="mt-2 text-sm text-emerald-50/90">
-                      Blink executed through DarkAgent.
-                    </div>
-                    <div className="mt-3 space-y-2 text-sm text-emerald-50/90 break-all">
-                      <div><span className="font-semibold">Transaction ID:</span> {execution.txid}</div>
-                      <div><span className="font-semibold">Stealth address:</span> {execution.stealthAddress}</div>
-                      {execution.proof && (
-                        <div>
-                          <span className="font-semibold">ZK Proof:</span>{' '}
-                          <a 
-                            href={`https://sepolia.basescan.org/address/0x7D5d1222e12D1D26F512a9626B68ce2394C7e034`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-emerald-300 hover:text-emerald-200 underline"
-                          >
-                            View Verifier Contract on Base
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" />
+        <Dialog.Content className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto p-4 md:items-center">
+          <div className="flex w-full max-w-[640px] flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#0c1118]/95 p-4 shadow-[0_40px_120px_rgba(0,0,0,0.45)] md:max-h-[calc(100vh-40px)] md:p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <Dialog.Title className="text-xl font-semibold text-white">Execution Approval</Dialog.Title>
+                <Dialog.Description className="mt-1 text-sm text-slate-400">Review the sanitized trade that will be approved by the wallet.</Dialog.Description>
               </div>
-            </motion.div>
-          </Dialog.Content>
-        </AnimatePresence>
+              <Dialog.Close className="rounded-full border border-white/10 p-2 text-slate-400 transition hover:text-white">
+                <X className="h-4 w-4" />
+              </Dialog.Close>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Approved trade</div>
+                <div className="mt-2 text-lg font-semibold text-white">
+                  {blink?.tokenIn} to {blink?.tokenOut}
+                </div>
+                <div className="mt-1.5 text-sm text-slate-400">
+                  {blink?.action} on {blink?.protocol} / {blink?.chain}
+                </div>
+                <div className="mt-2 text-sm text-slate-300">Spend {formatUsd(blink?.amount)}</div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                <div className="text-xs uppercase tracking-[0.22em] text-slate-500">DarkAgent verdict</div>
+                <div className="mt-2 flex items-center gap-3">
+                  <StatusBadge status={analysis?.status || 'safe'}>{analysis?.status || 'safe'}</StatusBadge>
+                  <div className="text-sm text-slate-300">Score {analysis?.score || '--'}</div>
+                </div>
+                <div className="mt-2 text-sm text-slate-300">{analysis?.summary || 'Policy checks completed.'}</div>
+              </div>
+            </div>
+
+            {!execution ? (
+              <div className="mt-4 rounded-[24px] border border-white/10 bg-[#0b1016] p-4">
+                <div className="flex items-center gap-3 text-white">
+                  <Wallet className="h-4.5 w-4.5 text-vault-green" />
+                  <div className="text-base font-semibold">Wallet approval step</div>
+                </div>
+                <div className="mt-2 text-sm text-slate-300">
+                  A real Base Sepolia transaction records the approved request before the backend settles it.
+                </div>
+                <div className="mt-4 flex justify-start">
+                  <button
+                    type="button"
+                    onClick={onConfirm}
+                    disabled={confirming || !canConfirm}
+                    className="inline-flex items-center gap-2 rounded-full bg-vault-green px-5 py-3 text-sm font-semibold text-black transition hover:bg-vault-green/90 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <Wallet className="h-4 w-4" /> {confirming ? 'Submitting...' : canConfirm ? 'Approve on Base Sepolia' : 'Blocked by policy'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-[24px] border border-emerald-400/20 bg-emerald-400/10 p-4">
+                <div className="flex items-center gap-3 text-emerald-100">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <div className="text-base font-semibold">Approval recorded</div>
+                </div>
+                <div className="mt-2 text-sm text-emerald-50/90">
+                  The wallet approval is on-chain. Settlement and proof details are listed below.
+                </div>
+
+                <div className="mt-4 grid gap-3">
+                  {walletApproval?.txHash && (
+                    <ResultCard
+                      label="Wallet approval tx"
+                      value={walletApproval.txHash}
+                      href={walletApproval.explorerUrl}
+                      helper={walletApproval.blockNumber ? `Block ${walletApproval.blockNumber}` : 'Base Sepolia'}
+                    />
+                  )}
+
+                  {settlement?.txid && (
+                    <ResultCard
+                      label="Settlement reference"
+                      value={settlement.txid}
+                      href={execution?.settlementUrl}
+                      helper={execution?.settlementLabel}
+                    />
+                  )}
+
+                  {walletApproval?.contractAddress && (
+                    <ResultCard
+                      label="DarkAgent contract"
+                      value={walletApproval.contractAddress}
+                      href={walletApproval.contractUrl}
+                      helper="On-chain approval target"
+                    />
+                  )}
+
+                  {execution?.proof?.id && (
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white">
+                      <div className="text-xs uppercase tracking-[0.2em] text-slate-500">Proof artifact</div>
+                      <div className="mt-2 font-medium">{execution.proof.id}</div>
+                      <div className="mt-1 text-slate-300">Stored by the DarkAgent proof service for audit and demo playback.</div>
+                    </div>
+                  )}
+
+                  {execution?.error && (
+                    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-100">
+                      {execution.error}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  )
+}
+
+function ResultCard({ label, value, helper, href }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-4 break-all">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-xs uppercase tracking-[0.2em] text-slate-500">{label}</div>
+        {href && (
+          <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-emerald-300 hover:text-emerald-200">
+            Open <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
+      </div>
+      <div className="mt-2 text-sm font-medium text-white">{value}</div>
+      {helper && <div className="mt-1 text-sm text-slate-400">{helper}</div>}
+    </div>
   )
 }

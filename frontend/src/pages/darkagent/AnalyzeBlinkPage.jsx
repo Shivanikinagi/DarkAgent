@@ -1,13 +1,28 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { AlertTriangle, Bot, ShieldX, Sparkles, Wallet } from 'lucide-react'
+import { Bot, Sparkles, Wallet } from 'lucide-react'
+import { useAccount, useChainId, usePublicClient, useSwitchChain, useWriteContract } from 'wagmi'
+import { parseAbi, stringToHex } from 'viem'
 import { demoBlinks } from '../../data/demo'
 import { useDarkAgent } from '../../context/DarkAgentContext'
-import { buildBlinkUrl, evaluateBlink, parseBlinkFromSearchParams, parseBlinkFromUrl, titleizeSource } from '../../lib/policyEngine'
-import { AppShell, GlowButton, MetricCard, PageHeader, SectionCard, StatusBadge, ViewportFit } from '../../components/darkagent/Ui'
+import { buildBlinkUrl, parseBlinkFromSearchParams, parseBlinkFromUrl, titleizeSource } from '../../lib/policyEngine'
+import { AppShell, GlowButton, MetricCard, PageHeader, SectionCard, StatusBadge, ViewportFit, WalletSummaryCard } from '../../components/darkagent/Ui'
 import { ExecutionDialog } from '../../components/darkagent/ExecutionDialog'
+import {
+  addressExplorerUrl,
+  BASE_SEPOLIA_CHAIN_ID,
+  DARKAGENT_CONTRACTS,
+  DEFAULT_ENS_PROFILE,
+  DEMO_AGENT_ADDRESS,
+  formatUsd,
+  resolveSettlementLabel,
+  txExplorerUrl,
+} from '../../lib/product'
 
-const PROFILE = 'alice.eth'
+const PROFILE = DEFAULT_ENS_PROFILE
+const DARKAGENT_PROPOSE_ABI = parseAbi([
+  'function propose(address agent, address user, bytes action) external returns (bytes32)',
+])
 
 function mapDecision(decision) {
   if (decision === 'block') return 'blocked'
@@ -16,10 +31,16 @@ function mapDecision(decision) {
   return 'safe'
 }
 
+function statusForSample(index) {
+  if (index === 0) return 'safe'
+  if (index === 1) return 'blocked'
+  return 'downsized'
+}
+
 export default function AnalyzeBlinkPage() {
   const { shareId } = useParams()
   const [searchParams] = useSearchParams()
-  const { analyzeBlinkUrl, executeBlinkUrl, getShareLink, state, busy } = useDarkAgent()
+  const { analyzeBlinkUrl, executeBlinkUrl, getShareLink, busy } = useDarkAgent()
   const [analysisPayload, setAnalysisPayload] = useState(null)
   const [executionPayload, setExecutionPayload] = useState(null)
   const [analysisError, setAnalysisError] = useState('')
@@ -27,6 +48,13 @@ export default function AnalyzeBlinkPage() {
   const [confirming, setConfirming] = useState(false)
   const [resolvedBlinkUrl, setResolvedBlinkUrl] = useState('')
   const [loadingSharedBlink, setLoadingSharedBlink] = useState(false)
+  const [executionError, setExecutionError] = useState('')
+
+  const { address, isConnected } = useAccount()
+  const chainId = useChainId()
+  const publicClient = usePublicClient()
+  const { switchChainAsync } = useSwitchChain()
+  const { writeContractAsync } = useWriteContract()
 
   const hasQueryBlink = Array.from(searchParams.keys()).length > 0
   const hasBlink = Boolean(shareId || hasQueryBlink)
@@ -65,14 +93,10 @@ export default function AnalyzeBlinkPage() {
   }, [getShareLink, shareId])
 
   const localBlink = useMemo(() => {
-    if (resolvedBlinkUrl) {
-      return parseBlinkFromUrl(resolvedBlinkUrl)
-    }
+    if (resolvedBlinkUrl) return parseBlinkFromUrl(resolvedBlinkUrl)
     return parseBlinkFromSearchParams(searchParams)
   }, [resolvedBlinkUrl, searchParams])
 
-  const localPolicy = useMemo(() => state?.policies?.find((entry) => entry.ensName === PROFILE)?.stored, [state])
-  const localFallback = useMemo(() => evaluateBlink(localBlink, localPolicy), [localBlink, localPolicy])
   const analysisTargetUrl = resolvedBlinkUrl || (hasQueryBlink ? (typeof window !== 'undefined' ? window.location.href : buildBlinkUrl('https://darkagent.app', localBlink)) : '')
 
   useEffect(() => {
@@ -84,6 +108,8 @@ export default function AnalyzeBlinkPage() {
         if (!cancelled) {
           setAnalysisPayload(payload)
           setAnalysisError('')
+          setExecutionError('')
+          setExecutionPayload(null)
         }
       })
       .catch((error) => {
@@ -99,39 +125,93 @@ export default function AnalyzeBlinkPage() {
   }, [analyzeBlinkUrl, analysisTargetUrl, hasBlink, loadingSharedBlink])
 
   const blink = analysisPayload?.parsedBlink ? { ...localBlink, ...analysisPayload.parsedBlink } : localBlink
-
   const verdict = analysisPayload
     ? {
         status: mapDecision(analysisPayload.analysis.decision),
         score: Math.max(100 - analysisPayload.analysis.riskScore, 18),
-        reasons: analysisPayload.analysis.explanation,
+        reasons: analysisPayload.analysis.explanation || [],
         originalAmount: blink.amountUsd || localBlink.amount,
         safeAmount:
           analysisPayload.analysis.decision === 'auto-downsize'
             ? analysisPayload.analysis.executionAmountUsd
             : undefined,
-        mockedSlippageBps: blink.slippageBps || localFallback.mockedSlippageBps,
-        mockedLiquidityUsd: blink.liquidityUsd || localFallback.mockedLiquidityUsd,
-        tokenCategory: blink.tokenCategory || localFallback.tokenCategory,
+        mockedSlippageBps: blink.slippageBps,
+        mockedLiquidityUsd: blink.liquidityUsd,
+        tokenCategory: blink.tokenCategory,
         sourceLimit: analysisPayload.analysis.sourceLimitUsd,
+        summary: analysisPayload.analysis.summary,
       }
-    : localFallback
+    : null
+
+  const reviewStatus = verdict?.status || (analysisError ? 'blocked' : 'downsized')
+  const executionBlocked = verdict?.status === 'blocked'
+  const contractAddress = DARKAGENT_CONTRACTS?.DarkAgent
+  const canSubmitWalletApproval = Boolean(isConnected && contractAddress)
 
   async function confirmExecution() {
+    let walletApproval = null
+
     try {
       setConfirming(true)
-      const payload = await executeBlinkUrl({ url: analysisTargetUrl, ensName: PROFILE })
-      setExecutionPayload(payload)
-    } catch (err) {
-      console.error("Execution failed:", err)
-      setExecutionPayload({
-        execution: {
-          txid: '0x' + Math.random().toString(16).slice(2, 64).padStart(64, '0'),
-          stealthAddress: '0x' + Math.random().toString(16).slice(2, 42).padStart(40, '0'),
-          proofTx: '0xa0ccbe0faab496924c2ed2cff2775fba18ef1845bb0876bed3b4695bce136814',
-          proof: '0x' + Math.random().toString(16).slice(2, 64).padStart(128, '0') + Math.random().toString(16).slice(2, 64).padStart(128, '0')
-        }
+      setExecutionError('')
+
+      if (!address) throw new Error('Connect a wallet first.')
+      if (chainId !== BASE_SEPOLIA_CHAIN_ID) {
+        await switchChainAsync({ chainId: BASE_SEPOLIA_CHAIN_ID })
+      }
+      if (!contractAddress) throw new Error('DarkAgent contract missing.')
+      if (!publicClient) throw new Error('Base Sepolia client unavailable.')
+
+      const actionPayload = stringToHex(
+        JSON.stringify({
+          blink: {
+            title: blink.title || localBlink.title,
+            tokenIn: blink.tokenIn || localBlink.tokenIn,
+            tokenOut: blink.tokenOut || localBlink.tokenOut,
+            amountUsd: verdict.safeAmount || blink.amountUsd || localBlink.amount,
+            protocol: blink.protocol || localBlink.protocol,
+            source: blink.sourceCategory || localBlink.source,
+          },
+          reviewedAt: new Date().toISOString(),
+        })
+      )
+
+      const walletHash = await writeContractAsync({
+        address: contractAddress,
+        abi: DARKAGENT_PROPOSE_ABI,
+        functionName: 'propose',
+        args: [DEMO_AGENT_ADDRESS || address, address, actionPayload],
       })
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: walletHash })
+      walletApproval = {
+        txHash: walletHash,
+        explorerUrl: txExplorerUrl(walletHash),
+        blockNumber: receipt.blockNumber?.toString?.() || '',
+        contractAddress,
+        contractUrl: addressExplorerUrl(contractAddress),
+      }
+
+      const payload = await executeBlinkUrl({ url: analysisTargetUrl, ensName: PROFILE })
+      setExecutionPayload({
+        walletApproval,
+        execution: payload.execution,
+        proof: payload.proof,
+        settlementLabel: resolveSettlementLabel(payload.execution?.mode),
+        settlementUrl: payload.execution?.receiptUrl || txExplorerUrl(payload.execution?.txid),
+      })
+    } catch (error) {
+      setExecutionError(error.message || 'Execution failed.')
+      if (walletApproval) {
+        setExecutionPayload({
+          walletApproval,
+          execution: null,
+          proof: null,
+          settlementLabel: 'Settlement failed',
+          settlementUrl: '',
+          error: error.message || 'Execution failed.',
+        })
+      }
     } finally {
       setConfirming(false)
     }
@@ -142,10 +222,10 @@ export default function AnalyzeBlinkPage() {
       <ViewportFit>
         <>
           <PageHeader
-            eyebrow="Analyze Blink"
-            title="Analyze a Blink."
-            description="Review the verdict and act."
-            actions={hasBlink ? <StatusBadge status={verdict.status}>{verdict.status}</StatusBadge> : <StatusBadge status="downsized">Awaiting Blink</StatusBadge>}
+            eyebrow="Review"
+            title="See the verdict. Approve the safe version."
+            description="Real wallet approval happens only after policy review."
+            actions={hasBlink ? <StatusBadge status={reviewStatus}>{analysisPayload ? reviewStatus : analysisError ? 'error' : 'reviewing'}</StatusBadge> : <StatusBadge status="downsized">Awaiting Blink</StatusBadge>}
           />
 
           {!hasBlink ? (
@@ -157,15 +237,13 @@ export default function AnalyzeBlinkPage() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <div className="font-semibold text-white">{demo.title}</div>
-                        <div className="mt-1 text-sm text-slate-400">{titleizeSource(demo.source)} - {demo.protocol}</div>
+                        <div className="mt-1 text-sm text-slate-400">{demo.tokenIn} {'->'} {demo.tokenOut}</div>
                       </div>
-                      <StatusBadge status={index === 0 ? 'safe' : index === 1 ? 'blocked' : 'downsized'}>
-                        {index === 0 ? 'Safe' : index === 1 ? 'Blocked' : 'Downsized'}
-                      </StatusBadge>
+                      <StatusBadge status={statusForSample(index)}>{statusForSample(index)}</StatusBadge>
                     </div>
-                    <div className="mt-4 text-sm text-slate-300">{demo.tokenIn} {'->'} {demo.tokenOut} for ${demo.amount}</div>
+                    <div className="mt-4 text-sm text-slate-300">{formatUsd(demo.amount)} via {demo.protocol}</div>
                     <GlowButton as={Link} to={`/analyze?${new URL(url).searchParams.toString()}`} className="mt-5 border border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.08]">
-                      Open scenario
+                      Open
                     </GlowButton>
                   </SectionCard>
                 )
@@ -173,55 +251,85 @@ export default function AnalyzeBlinkPage() {
             </div>
           ) : loadingSharedBlink && !analysisPayload ? (
             <SectionCard className="mt-6">
-              <div className="text-sm text-slate-300">Resolving shared Blink...</div>
+              <div className="text-sm text-slate-300">Resolving Blink...</div>
+            </SectionCard>
+          ) : !analysisPayload && !analysisError ? (
+            <SectionCard className="mt-6">
+              <div className="text-sm text-slate-300">Running review...</div>
+            </SectionCard>
+          ) : !analysisPayload ? (
+            <SectionCard className="mt-6">
+              <div className="text-sm text-red-100">{analysisError}</div>
             </SectionCard>
           ) : (
-            <div className="mt-6 grid gap-5 max-w-4xl mx-auto w-full">
-              <SectionCard>
+            <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
+              <SectionCard className="p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">Trade summary</div>
-                    <h2 className="mt-3 text-2xl font-semibold text-white">{blink.title || localBlink.title}</h2>
-                    <div className="mt-2 text-sm text-slate-400">
-                      {titleizeSource(blink.sourceCategory || localBlink.source)} - {blink.tokenIn || localBlink.tokenIn} {'->'} {blink.tokenOut || localBlink.tokenOut}
+                    <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">Blink</div>
+                    <h2 className="mt-2 text-2xl font-semibold text-white">{blink.title || localBlink.title}</h2>
+                    <div className="mt-1 text-sm text-slate-400">
+                      {titleizeSource(blink.sourceCategory || localBlink.source)} / {blink.protocol || localBlink.protocol} / {blink.chain || localBlink.chain}
                     </div>
                   </div>
-                  <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm text-slate-300">Score {verdict.score}</div>
+                  <StatusBadge status={verdict.status}>{verdict.status}</StatusBadge>
                 </div>
 
-                <div className="mt-5 grid gap-3 md:grid-cols-2">
-                  <MetricCard label="Source" value={titleizeSource(blink.sourceCategory || localBlink.source)} detail={blink.sourceName || localBlink.referralTag || '@sharedBlink'} />
-                  <MetricCard label="Protocol" value={blink.protocol || localBlink.protocol} detail={blink.chain || localBlink.chain} />
-                  <MetricCard label="Amount" value={`$${blink.amountUsd || localBlink.amount}`} detail={`Limit: $${verdict.sourceLimit}`} />
-                  <MetricCard label="Token category" value={verdict.tokenCategory} detail={`${verdict.mockedSlippageBps} bps slippage`} />
+                <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  <MetricCard label="Requested" value={formatUsd(blink.amountUsd || localBlink.amount)} detail={`${blink.tokenIn || localBlink.tokenIn} -> ${blink.tokenOut || localBlink.tokenOut}`} />
+                  <MetricCard label="Safe amount" value={formatUsd(verdict.safeAmount || blink.amountUsd || localBlink.amount)} detail={`Limit ${formatUsd(verdict.sourceLimit)}`} />
+                  <MetricCard label="Risk score" value={verdict.score} detail={verdict.tokenCategory} />
+                  <MetricCard label="Market" value={`${verdict.mockedSlippageBps || '--'} bps`} detail={verdict.mockedLiquidityUsd ? formatUsd(verdict.mockedLiquidityUsd) : 'No liquidity data'} />
                 </div>
 
-                
-
-                {analysisPayload?.rewrittenBlinkUrl && analysisPayload.rewrittenBlinkUrl !== analysisTargetUrl && (
-                  <div className="mt-5 rounded-2xl border border-sky-400/20 bg-sky-400/10 p-4">
-                    <div className="flex items-center gap-3 text-sky-100">
-                      <Sparkles className="h-5 w-5" />
-                      <div className="font-medium">Rewritten safe Blink available</div>
-                    </div>
-                    <div className="mt-3 break-all text-sm text-sky-50/90">{analysisPayload.rewrittenBlinkUrl}</div>
+                {verdict.safeAmount && (
+                  <div className="mt-5 rounded-2xl border border-sky-400/20 bg-sky-400/10 px-4 py-3 text-sm text-sky-50">
+                    Downsized from {formatUsd(verdict.originalAmount)} to {formatUsd(verdict.safeAmount)}.
                   </div>
                 )}
 
-                <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-                  <GlowButton 
+                <div className="mt-5 grid gap-3">
+                  {(verdict.reasons || []).slice(0, 3).map((reason, index) => (
+                    <div key={`${reason}-${index}`} className="rounded-2xl border border-white/8 bg-black/20 px-4 py-3 text-sm text-slate-200">
+                      {reason}
+                    </div>
+                  ))}
+                </div>
+
+                {executionError && (
+                  <div className="mt-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                    {executionError}
+                  </div>
+                )}
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <GlowButton
                     onClick={() => setExecutionOpen(true)}
+                    disabled={executionBlocked}
                     className="bg-vault-green text-black hover:bg-vault-green/90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <Wallet className="h-4 w-4" /> Continue
+                    <Wallet className="h-4 w-4" /> {executionBlocked ? 'Blocked' : 'Approve on Base'}
                   </GlowButton>
                   <GlowButton as={Link} to="/dashboard" className="border border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.08]">
-                    Edit policy
+                    Policy
                   </GlowButton>
                 </div>
               </SectionCard>
 
+              <div className="space-y-5">
+                <WalletSummaryCard detail="This signer records the approval tx." />
 
+                
+
+                {executionPayload?.walletApproval?.explorerUrl && (
+                  <SectionCard>
+                    <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">Approval</div>
+                    <a href={executionPayload.walletApproval.explorerUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm text-sky-300 hover:text-sky-200">
+                      View wallet tx on BaseScan
+                    </a>
+                  </SectionCard>
+                )}
+              </div>
             </div>
           )}
 
@@ -234,14 +342,33 @@ export default function AnalyzeBlinkPage() {
               action: blink.action || localBlink.action,
               protocol: blink.protocol || localBlink.protocol,
               chain: blink.chain || localBlink.chain,
+              amount: verdict?.safeAmount || blink.amountUsd || localBlink.amount,
             }}
             analysis={verdict}
-            execution={executionPayload?.execution || null}
+            execution={executionPayload || null}
             onConfirm={confirmExecution}
             confirming={confirming || busy}
+            canConfirm={!executionBlocked}
           />
         </>
       </ViewportFit>
     </AppShell>
+  )
+}
+
+function CompactRow({ icon, title, text }) {
+  const Icon = icon
+  return (
+    <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+      <div className="flex items-start gap-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-vault-green">
+          <Icon className="h-4 w-4" />
+        </div>
+        <div>
+          <div className="text-sm font-semibold text-white">{title}</div>
+          <div className="mt-1 text-sm text-slate-300">{text}</div>
+        </div>
+      </div>
+    </div>
   )
 }
