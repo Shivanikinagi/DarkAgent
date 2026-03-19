@@ -1,0 +1,29 @@
+{
+  "domain": "hiring",
+  "agent_id": "cv_screener_v1",
+  "rules": [
+    {
+      "rule_id": "R01",
+      "field": "filter_fields_used",
+      "operator": "not_contains",
+      "value": "location",
+      "action_on_fail": "block",
+      "eu_ai_act_ref": "Article 10(5)"
+    },
+    {
+      "rule_id": "R02",
+      "field": "filter_fields_used",
+      "operator": "not_contains",
+      "value": "age",
+      "action_on_fail": "block",
+      "eu_ai_act_ref": "Article 10(5)"
+    },
+    {
+      "rule_id": "R03",
+      "field": "batch_size",
+      "operator": "lte",
+      "value": 500,
+      "action_on_fail": "notify"
+    }
+  ]
+}

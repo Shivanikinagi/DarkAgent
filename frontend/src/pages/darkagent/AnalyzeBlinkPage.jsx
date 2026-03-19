@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { ShieldAlert, Wallet } from 'lucide-react'
+import { ArrowRight, ShieldAlert, ShieldCheck, ShieldX, Wallet } from 'lucide-react'
 import { useAccount, useChainId, usePublicClient, useSwitchChain, useWriteContract } from 'wagmi'
 import { parseAbi, stringToHex } from 'viem'
 import { useDarkAgent } from '../../context/DarkAgentContext'
@@ -17,7 +17,7 @@ import {
   resolveSettlementLabel,
   txExplorerUrl,
 } from '../../lib/product'
-import { decisionToStatus, feedEntryToHref } from '../../lib/liveFeed'
+import { feedEntryToHref, shareToEntry } from '../../lib/liveFeed'
 
 const PROFILE = DEFAULT_ENS_PROFILE
 const DARKAGENT_PROPOSE_ABI = parseAbi([
@@ -90,7 +90,16 @@ export default function AnalyzeBlinkPage() {
     if (resolvedBlinkUrl) return parseBlinkFromUrl(resolvedBlinkUrl)
     return parseBlinkFromSearchParams(searchParams)
   }, [resolvedBlinkUrl, searchParams])
-  const liveSamples = useMemo(() => state?.feed || [], [state?.feed])
+  const recentShares = useMemo(
+    () =>
+      (state?.shares || [])
+        .slice()
+        .sort((left, right) => new Date(right.createdAt || 0) - new Date(left.createdAt || 0))
+        .map(shareToEntry)
+        .filter(Boolean)
+        .slice(0, 6),
+    [state?.shares]
+  )
 
   const analysisTargetUrl = resolvedBlinkUrl || (hasQueryBlink ? (typeof window !== 'undefined' ? window.location.href : buildBlinkUrl('https://darkagent.app', localBlink)) : '')
 
@@ -143,6 +152,9 @@ export default function AnalyzeBlinkPage() {
   const contractAddress = DARKAGENT_CONTRACTS?.DarkAgent
   const canSubmitWalletApproval = Boolean(isConnected && contractAddress && !executionBlocked)
   const sourceLabel = titleizeSource(blink.sourceCategory || localBlink.source)
+  const requestedAmount = blink.amountUsd || localBlink.amount
+  const blockedByAmount = requestedAmount > (verdict?.sourceLimit || 0)
+  const primaryReason = verdict?.reasons?.[0] || verdict?.summary || 'This Blink violated your live policy.'
 
   async function confirmExecution() {
     let walletApproval = null
@@ -218,16 +230,15 @@ export default function AnalyzeBlinkPage() {
       <ViewportFit>
         <>
           <PageHeader
-            eyebrow="Review"
-            title="DarkAgent caught this Blink before your wallet did."
-            description="This page uses the local server's analysis, proof signing, and policy state before wallet approval is allowed."
+            eyebrow="DarkAgent Intercept"
+            title="Blink intercepted"
+            description="DarkAgent catches the Blink at open time, checks your live policy, and either blocks it or hands a safe version to the wallet."
             actions={hasBlink ? <StatusBadge status={reviewStatus}>{analysisPayload ? reviewStatus : analysisError ? 'error' : 'reviewing'}</StatusBadge> : <StatusBadge status="downsized">Awaiting Blink</StatusBadge>}
           />
 
           {!hasBlink ? (
             <div className="mt-6 grid gap-4 md:grid-cols-3">
-              {liveSamples.map((sample) => {
-                const status = decisionToStatus(sample.analysis?.decision)
+              {recentShares.map((sample) => {
                 return (
                   <SectionCard key={sample.id}>
                     <div className="flex items-center justify-between gap-3">
@@ -235,15 +246,20 @@ export default function AnalyzeBlinkPage() {
                         <div className="font-semibold text-white">{sample.label}</div>
                         <div className="mt-1 text-sm text-slate-400">{sample.parsedBlink?.tokenIn} {'->'} {sample.parsedBlink?.tokenOut}</div>
                       </div>
-                      <StatusBadge status={status}>{status}</StatusBadge>
+                      <StatusBadge status="downsized">shared</StatusBadge>
                     </div>
-                    <div className="mt-4 text-sm text-slate-300">{sample.analysis?.summary || sample.parsedBlink?.summary}</div>
+                    <div className="mt-4 text-sm text-slate-300">{sample.parsedBlink?.summary}</div>
                     <GlowButton as={Link} to={feedEntryToHref(sample, window.location.origin)} className="mt-5 border border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.08]">
                       Open
                     </GlowButton>
                   </SectionCard>
                 )
               })}
+              {recentShares.length === 0 && (
+                <SectionCard className="md:col-span-3">
+                  <div className="text-sm text-slate-300">No live Blink links yet. Paste one in Inbox to start a real review.</div>
+                </SectionCard>
+              )}
             </div>
           ) : loadingSharedBlink && !analysisPayload ? (
             <SectionCard className="mt-6">
@@ -258,44 +274,72 @@ export default function AnalyzeBlinkPage() {
               <div className="text-sm text-red-100">{analysisError}</div>
             </SectionCard>
           ) : (
-            <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
-              <SectionCard className="p-5">
-                <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="mt-6 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+              <SectionCard className="p-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">Blink</div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">Incoming Blink</div>
                     <h2 className="mt-2 text-2xl font-semibold text-white">{blink.title || localBlink.title}</h2>
                     <div className="mt-1 text-sm text-slate-400">
-                      {titleizeSource(blink.sourceCategory || localBlink.source)} / {blink.protocol || localBlink.protocol} / {blink.chain || localBlink.chain}
+                      {sourceLabel} / {blink.protocol || localBlink.protocol} / {blink.chain || localBlink.chain}
                     </div>
                   </div>
                   <StatusBadge status={verdict.status}>{verdict.status}</StatusBadge>
                 </div>
 
-                <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  <MetricCard label="Requested" value={formatUsd(blink.amountUsd || localBlink.amount)} detail={`${blink.tokenIn || localBlink.tokenIn} -> ${blink.tokenOut || localBlink.tokenOut}`} />
-                  <MetricCard label="Source rule" value={formatUsd(verdict.sourceLimit)} detail={`${PROFILE} max from ${sourceLabel}`} />
-                  <MetricCard label="Risk score" value={verdict.score} detail={verdict.status === 'blocked' ? 'extremely high' : verdict.tokenCategory} />
-                  <MetricCard label="Market" value={`${verdict.mockedSlippageBps || '--'} bps`} detail={verdict.mockedLiquidityUsd ? formatUsd(verdict.mockedLiquidityUsd) : 'No liquidity data'} />
+                <div className="mt-6 rounded-[28px] border border-white/10 bg-black/20 p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <div className="text-xs uppercase tracking-[0.22em] text-vault-slate">What the Blink asked for</div>
+                      <div className="mt-3 text-3xl font-semibold text-white">{formatUsd(blink.amountUsd || localBlink.amount)}</div>
+                      <div className="mt-1 text-sm text-slate-300">
+                        {blink.tokenIn || localBlink.tokenIn} to {blink.tokenOut || localBlink.tokenOut}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-right">
+                      <div className="text-xs uppercase tracking-[0.2em] text-vault-slate">Your live rule</div>
+                      <div className="mt-1 text-xl font-semibold text-white">{formatUsd(verdict.sourceLimit)}</div>
+                      <div className="mt-1 text-sm text-slate-400">{PROFILE} from {sourceLabel}</div>
+                    </div>
+                  </div>
                 </div>
 
                 {executionBlocked ? (
-                  <div className="mt-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-4 text-sm text-red-50">
-                    <div className="flex items-center gap-2 font-semibold text-red-100">
-                      <ShieldAlert className="h-4 w-4" />
-                      Execution locked
+                  <div className="mt-5 rounded-[28px] border border-red-500/20 bg-red-500/10 px-5 py-5 text-sm text-red-50">
+                    <div className="flex items-center gap-3 font-semibold text-red-100">
+                      <ShieldX className="h-5 w-5" />
+                      DarkAgent blocked this Blink
                     </div>
-                    <div className="mt-2">
-                      This {sourceLabel} Blink asked for {formatUsd(blink.amountUsd || localBlink.amount)}, but your {PROFILE} rule for {sourceLabel} is {formatUsd(verdict.sourceLimit)}. DarkAgent blocked it before the wallet approval step.
+                    <div className="mt-3 text-sm leading-6 text-red-50/95">
+                      {blockedByAmount
+                        ? `${sourceLabel} tried to open a Blink for ${formatUsd(requestedAmount)}, but your live limit is ${formatUsd(verdict.sourceLimit)}. The wallet never sees this request.`
+                        : `${primaryReason} The wallet never sees this request.`}
                     </div>
                   </div>
                 ) : verdict.safeAmount ? (
-                  <div className="mt-5 rounded-2xl border border-sky-400/20 bg-sky-400/10 px-4 py-3 text-sm text-sky-50">
-                    Downsized from {formatUsd(verdict.originalAmount)} to {formatUsd(verdict.safeAmount)}.
+                  <div className="mt-5 rounded-[28px] border border-sky-400/20 bg-sky-400/10 px-5 py-5 text-sm text-sky-50">
+                    <div className="flex items-center gap-3 font-semibold text-sky-100">
+                      <ShieldAlert className="h-5 w-5" />
+                      DarkAgent rewrote the Blink
+                    </div>
+                    <div className="mt-3">
+                      Requested {formatUsd(verdict.originalAmount)}. Safe amount is {formatUsd(verdict.safeAmount)}.
+                    </div>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="mt-5 rounded-[28px] border border-emerald-400/20 bg-emerald-400/10 px-5 py-5 text-sm text-emerald-50">
+                    <div className="flex items-center gap-3 font-semibold text-emerald-100">
+                      <ShieldCheck className="h-5 w-5" />
+                      DarkAgent approved this Blink
+                    </div>
+                    <div className="mt-3">
+                      The Blink fits your live policy, so the wallet can see the approved action.
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-5 grid gap-3">
-                  {(verdict.reasons || []).slice(0, 3).map((reason, index) => (
+                  {(verdict.reasons || []).slice(0, 2).map((reason, index) => (
                     <div key={`${reason}-${index}`} className="rounded-2xl border border-white/8 bg-black/20 px-4 py-3 text-sm text-slate-200">
                       {reason}
                     </div>
@@ -314,32 +358,39 @@ export default function AnalyzeBlinkPage() {
                     disabled={executionBlocked}
                     className="bg-vault-green text-black hover:bg-vault-green/90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <Wallet className="h-4 w-4" /> {executionBlocked ? 'Confirm Execution locked' : 'Confirm Execution'}
+                    <Wallet className="h-4 w-4" /> {executionBlocked ? 'Blocked before wallet' : 'Continue to wallet'}
                   </GlowButton>
                   <GlowButton as={Link} to="/dashboard" className="border border-white/10 bg-white/[0.05] text-white hover:bg-white/[0.08]">
-                    Policy
+                    Change rule
                   </GlowButton>
                 </div>
               </SectionCard>
 
               <div className="space-y-5">
-                <WalletSummaryCard detail={executionBlocked ? 'Wallet approval is disabled until the Blink passes policy review.' : 'This signer records the approval tx.'} />
-
-                <SectionCard>
-                  <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">Firewall path</div>
-                  <div className="mt-3 space-y-3 text-sm text-slate-300">
-                    <div>1. The incoming {sourceLabel} Blink arrives at the DarkAgent proxy.</div>
-                    <div>2. The server pulls the latest {PROFILE} safety rules.</div>
-                    <div>3. The Blink is compared against your saved {sourceLabel} limit before wallet approval is unlocked.</div>
+                <SectionCard className="p-6">
+                  <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">DarkAgent Extension View</div>
+                  <div className="mt-4 space-y-4">
+                    <InterceptRow
+                      title="Agent opened Blink"
+                      text={`${sourceLabel} attempted ${blink.action || localBlink.action} on ${blink.protocol || localBlink.protocol}.`}
+                    />
+                    <InterceptRow
+                      title="DarkAgent checked policy"
+                      text={`Live ${PROFILE} rule: ${formatUsd(verdict.sourceLimit)} max from ${sourceLabel}.`}
+                    />
+                    <InterceptRow
+                      title={executionBlocked ? 'Wallet stopped' : 'Wallet unlocked'}
+                      text={executionBlocked ? 'This Blink is blocked before wallet approval.' : 'Only the approved action reaches the wallet.'}
+                    />
                   </div>
                 </SectionCard>
 
                 {analysisPayload?.proof?.id && (
                   <SectionCard>
-                    <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">Analysis proof</div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">DarkAgent receipt</div>
                     <div className="mt-3 text-sm font-medium text-white">{analysisPayload.proof.id}</div>
                     <div className="mt-1 text-sm text-slate-300">
-                      Signed by {analysisPayload.proof.signerAddress} with verdict {analysisPayload.proof.verdict}.
+                      Signed verdict: {analysisPayload.proof.verdict}
                     </div>
                   </SectionCard>
                 )}
@@ -348,7 +399,7 @@ export default function AnalyzeBlinkPage() {
                   <SectionCard>
                     <div className="text-xs uppercase tracking-[0.24em] text-vault-slate">Approval</div>
                     <a href={executionPayload.walletApproval.explorerUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm text-sky-300 hover:text-sky-200">
-                      View wallet tx on BaseScan
+                      View Base approval <ArrowRight className="ml-2 h-4 w-4" />
                     </a>
                   </SectionCard>
                 )}
@@ -379,19 +430,11 @@ export default function AnalyzeBlinkPage() {
   )
 }
 
-function CompactRow({ icon, title, text }) {
-  const Icon = icon
+function InterceptRow({ title, text }) {
   return (
     <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-      <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-vault-green">
-          <Icon className="h-4 w-4" />
-        </div>
-        <div>
-          <div className="text-sm font-semibold text-white">{title}</div>
-          <div className="mt-1 text-sm text-slate-300">{text}</div>
-        </div>
-      </div>
+      <div className="text-sm font-semibold text-white">{title}</div>
+      <div className="mt-1 text-sm text-slate-300">{text}</div>
     </div>
   )
 }

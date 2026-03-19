@@ -1,0 +1,5 @@
+# Verifier inputs for the compliance check circuit
+# Only public inputs are listed here
+
+# Public input: compliance result (1 = compliant)
+expected_compliant = "1"

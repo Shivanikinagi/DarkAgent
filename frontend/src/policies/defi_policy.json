@@ -1,0 +1,27 @@
+{
+  "domain": "defi",
+  "agent_id": "trading_bot_v1",
+  "rules": [
+    {
+      "rule_id": "R01",
+      "field": "amount_usdc",
+      "operator": "lte",
+      "value": 300,
+      "action_on_fail": "block"
+    },
+    {
+      "rule_id": "R02",
+      "field": "token_category",
+      "operator": "not_in",
+      "value": ["meme", "unverified"],
+      "action_on_fail": "block"
+    },
+    {
+      "rule_id": "R03",
+      "field": "protocol",
+      "operator": "in",
+      "value": ["uniswap", "aave", "compound"],
+      "action_on_fail": "block"
+    }
+  ]
+}

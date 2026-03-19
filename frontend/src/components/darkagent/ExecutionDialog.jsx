@@ -6,6 +6,7 @@ import { StatusBadge } from './Ui'
 export function ExecutionDialog({ open, onOpenChange, blink, analysis, execution, onConfirm, confirming, canConfirm = true }) {
   const walletApproval = execution?.walletApproval
   const settlement = execution?.execution
+  const blocked = analysis?.status === 'blocked'
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -15,8 +16,8 @@ export function ExecutionDialog({ open, onOpenChange, blink, analysis, execution
           <div className="flex w-full max-w-[640px] flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#0c1118]/95 p-4 shadow-[0_40px_120px_rgba(0,0,0,0.45)] md:max-h-[calc(100vh-40px)] md:p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <Dialog.Title className="text-xl font-semibold text-white">Execution Approval</Dialog.Title>
-                <Dialog.Description className="mt-1 text-sm text-slate-400">Review the sanitized trade that will be approved by the wallet.</Dialog.Description>
+                <Dialog.Title className="text-xl font-semibold text-white">DarkAgent Handoff</Dialog.Title>
+                <Dialog.Description className="mt-1 text-sm text-slate-400">DarkAgent either blocks the Blink here or forwards the approved action to the wallet.</Dialog.Description>
               </div>
               <Dialog.Close className="rounded-full border border-white/10 p-2 text-slate-400 transition hover:text-white">
                 <X className="h-4 w-4" />
@@ -25,7 +26,7 @@ export function ExecutionDialog({ open, onOpenChange, blink, analysis, execution
 
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Approved trade</div>
+                <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Blink request</div>
                 <div className="mt-2 text-lg font-semibold text-white">
                   {blink?.tokenIn} to {blink?.tokenOut}
                 </div>
@@ -39,7 +40,7 @@ export function ExecutionDialog({ open, onOpenChange, blink, analysis, execution
                 <div className="text-xs uppercase tracking-[0.22em] text-slate-500">DarkAgent verdict</div>
                 <div className="mt-2 flex items-center gap-3">
                   <StatusBadge status={analysis?.status || 'safe'}>{analysis?.status || 'safe'}</StatusBadge>
-                  <div className="text-sm text-slate-300">Score {analysis?.score || '--'}</div>
+                  <div className="text-sm text-slate-300">Risk {analysis?.score || '--'}</div>
                 </div>
                 <div className="mt-2 text-sm text-slate-300">{analysis?.summary || 'Policy checks completed.'}</div>
               </div>
@@ -49,10 +50,12 @@ export function ExecutionDialog({ open, onOpenChange, blink, analysis, execution
               <div className="mt-4 rounded-[24px] border border-white/10 bg-[#0b1016] p-4">
                 <div className="flex items-center gap-3 text-white">
                   <Wallet className="h-4.5 w-4.5 text-vault-green" />
-                  <div className="text-base font-semibold">Wallet approval step</div>
+                  <div className="text-base font-semibold">{blocked ? 'Blocked before wallet' : 'Forwarding to wallet'}</div>
                 </div>
                 <div className="mt-2 text-sm text-slate-300">
-                  A real Base Sepolia transaction records the approved request before the backend settles it.
+                  {blocked
+                    ? 'DarkAgent stops the Blink here, so the wallet never receives the request.'
+                    : 'A real Base Sepolia transaction records the approved Blink before backend settlement.'}
                 </div>
                 <div className="mt-4 flex justify-start">
                   <button
@@ -61,7 +64,7 @@ export function ExecutionDialog({ open, onOpenChange, blink, analysis, execution
                     disabled={confirming || !canConfirm}
                     className="inline-flex items-center gap-2 rounded-full bg-vault-green px-5 py-3 text-sm font-semibold text-black transition hover:bg-vault-green/90 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    <Wallet className="h-4 w-4" /> {confirming ? 'Submitting...' : canConfirm ? 'Approve on Base Sepolia' : 'Blocked by policy'}
+                    <Wallet className="h-4 w-4" /> {confirming ? 'Submitting...' : canConfirm ? 'Approve on Base Sepolia' : 'Blocked by DarkAgent'}
                   </button>
                 </div>
               </div>
@@ -69,10 +72,10 @@ export function ExecutionDialog({ open, onOpenChange, blink, analysis, execution
               <div className="mt-4 rounded-[24px] border border-emerald-400/20 bg-emerald-400/10 p-4">
                 <div className="flex items-center gap-3 text-emerald-100">
                   <CheckCircle2 className="h-5 w-5" />
-                  <div className="text-base font-semibold">Approval recorded</div>
+                  <div className="text-base font-semibold">Wallet handoff recorded</div>
                 </div>
                 <div className="mt-2 text-sm text-emerald-50/90">
-                  The wallet approval is on-chain. Settlement and proof details are listed below.
+                  The approved Blink was handed to the wallet and recorded on Base.
                 </div>
 
                 <div className="mt-4 grid gap-3">

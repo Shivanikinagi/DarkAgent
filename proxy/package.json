@@ -1,0 +1,15 @@
+{
+  "name": "darkagent-proxy",
+  "version": "1.0.0",
+  "description": "DarkAgent Action Interceptor - ZK Compliance Proxy Server",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1"
+  }
+}

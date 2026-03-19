@@ -1,4 +1,4 @@
-import { buildBlinkUrl } from './policyEngine'
+import { buildBlinkUrl, parseBlinkFromUrl } from './policyEngine'
 
 function capitalize(value) {
   const text = String(value || '')
@@ -37,4 +37,23 @@ export function feedEntryToHref(entry, origin) {
 
   const blinkUrl = buildBlinkUrl(origin, feedEntryToDraft(entry))
   return `/analyze?${new URL(blinkUrl).searchParams.toString()}`
+}
+
+export function shareToEntry(share) {
+  if (!share?.blinkUrl) return null
+  const parsedBlink = parseBlinkFromUrl(share.blinkUrl)
+  return {
+    id: share.id,
+    label: share.meta?.title || parsedBlink.title || 'Shared Blink',
+    shareId: share.id,
+    parsedBlink: {
+      ...parsedBlink,
+      title:
+        parsedBlink.title === 'Shared trading Blink' || parsedBlink.title === 'DarkAgent trading Blink'
+          ? share.meta?.title || parsedBlink.title
+          : parsedBlink.title,
+    },
+    analysis: null,
+    createdAt: share.createdAt || null,
+  }
 }

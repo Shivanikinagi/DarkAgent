@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
-import { CheckCircle2, ShieldAlert, Sparkles, Shield, ShieldX, Wallet, ArrowRight, ExternalLink } from 'lucide-react'
+import { CheckCircle2, ShieldAlert, Sparkles, Shield, ShieldX, ShieldCheck, Wallet, ArrowRight, ExternalLink } from 'lucide-react'
 import { parseAbi, stringToHex } from 'viem'
 import { useAccount, useChainId, usePublicClient, useSwitchChain, useWriteContract } from 'wagmi'
 import { useDarkAgent } from '../../context/DarkAgentContext'

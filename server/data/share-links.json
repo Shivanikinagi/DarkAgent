@@ -251,5 +251,71 @@
       "tokenOut": "ETH"
     },
     "createdAt": "2026-03-15T06:56:05.975Z"
+  },
+  "293e2ba251": {
+    "id": "293e2ba251",
+    "blinkUrl": "http://localhost:5176/analyze?title=Incoming+Twitter+Blink&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=100&protocol=Uniswap&chain=Base&sender=%40signal_bot&tweetCopy=Fresh+Blink+to+review.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "Incoming Twitter Blink",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T07:30:51.777Z"
+  },
+  "92748dcd53": {
+    "id": "92748dcd53",
+    "blinkUrl": "http://localhost:5176/analyze?title=Incoming+Twitter+Blink&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=10&protocol=Uniswap&chain=Base&sender=%40signal_bot&tweetCopy=Fresh+Blink+to+review.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "Incoming Twitter Blink",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T07:31:13.342Z"
+  },
+  "aa6aa4fa99": {
+    "id": "aa6aa4fa99",
+    "blinkUrl": "http://localhost:5176/analyze?title=Incoming+Twitter+Blink&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=30&protocol=Uniswap&chain=Base&sender=%40signal_bot&tweetCopy=Fresh+Blink+to+review.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "Incoming Twitter Blink",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T07:31:40.157Z"
+  },
+  "1dffb09538": {
+    "id": "1dffb09538",
+    "blinkUrl": "http://localhost:5176/analyze?title=Incoming+Twitter+Blink&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=20&protocol=Uniswap&chain=Base&sender=%40signal_bot&tweetCopy=Fresh+Blink+to+review.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "Incoming Twitter Blink",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T07:31:47.341Z"
+  },
+  "758e28f470": {
+    "id": "758e28f470",
+    "blinkUrl": "http://localhost:5176/analyze?title=Incoming+Twitter+Blink&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=100&protocol=Uniswap&chain=Base&sender=%40signal_bot&tweetCopy=Fresh+Blink+to+review.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "Incoming Twitter Blink",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T07:34:22.131Z"
+  },
+  "603f263af6": {
+    "id": "603f263af6",
+    "blinkUrl": "http://localhost:5176/analyze?title=Incoming+Twitter+Blink&source=twitter&action=swap&tokenIn=USDC&tokenOut=ETH&amountUsd=100&protocol=Uniswap&chain=Base&sender=%40signal_bot&tweetCopy=Fresh+Blink+to+review.",
+    "createdBy": "alice.eth",
+    "meta": {
+      "title": "Incoming Twitter Blink",
+      "source": "twitter",
+      "tokenOut": "ETH"
+    },
+    "createdAt": "2026-03-15T07:43:31.259Z"
   }
 }
